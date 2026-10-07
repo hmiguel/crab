@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <!-- Crab mascot: flat, chubby, big googly eyes and buck teeth. -->
+  <!-- Crab mascot: flat, chubby, big googly eyes, a smile and buck teeth. -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#FCEBCB"/>
@@ -51,12 +51,9 @@
     <circle cx="442" cy="440" r="10" fill="#FFFFFF" stroke="none"/>
     <circle cx="668" cy="431" r="11" fill="#FFFFFF" stroke="none"/>
 
-    <!-- snout -->
-    <ellipse cx="514" cy="612" rx="78" ry="54" fill="#F6D7B0"/>
-    <ellipse cx="514" cy="580" rx="30" ry="20" fill="#1F2A33" stroke="none"/>
-
-    <!-- buck teeth -->
-    <path d="M488 652 L488 702 Q488 712 498 712 L512 712 L512 652" fill="#FFFFFF" stroke-width="12"/>
-    <path d="M512 652 L512 712 L526 712 Q536 712 536 702 L536 652" fill="#FFFFFF" stroke-width="12"/>
+    <!-- mouth: a wide smile with buck teeth hanging under it -->
+    <path d="M440 618 Q512 668 584 618" fill="none" stroke-width="16"/>
+    <path d="M490 640 L490 690 Q490 700 500 700 L512 700 L512 643" fill="#FFFFFF" stroke-width="12"/>
+    <path d="M512 643 L512 700 L524 700 Q534 700 534 690 L534 640" fill="#FFFFFF" stroke-width="12"/>
   </g>
 </svg>

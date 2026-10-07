@@ -1,0 +1,55 @@
+import { invoke } from "@tauri-apps/api/core";
+
+// Mirrors crab-core's serde types (camelCase). Line numbers are 0-based.
+export type Span = { startLine: number; endLine: number };
+export type Header = { name: string; value: string };
+export type BodySource = { kind: "inline"; value: string } | { kind: "file"; value: string };
+export type RequestBlock = {
+  name: string | null;
+  method: string;
+  url: string;
+  headers: Header[];
+  body: BodySource | null;
+  span: Span;
+  requestLine: number;
+};
+export type FileVar = { name: string; value: string; line: number };
+export type Diagnostic = { line: number; message: string };
+export type ParsedFile = { variables: FileVar[]; requests: RequestBlock[]; diagnostics: Diagnostic[] };
+export type ResolvedRequest = { method: string; url: string; headers: Header[]; body: string | null };
+export type Timing = { totalMs: number; ttfbMs: number };
+export type ResponseData = {
+  status: number;
+  statusText: string;
+  httpVersion: string;
+  headers: Header[];
+  contentType: string | null;
+  bodyText: string;
+  bodyBase64: string | null;
+  truncated: boolean;
+  sizeBytes: number;
+  timing: Timing;
+  request: ResolvedRequest;
+};
+export type ErrorKind = "parse" | "unresolvedVars" | "network" | "timeout" | "cancelled" | "io";
+export type CrabError = { kind: ErrorKind; message: string };
+export type StateName = "workspace" | "session";
+
+export const api = {
+  parseText: (text: string) => invoke<ParsedFile>("parse_text", { text }),
+  runRequest: (args: { runId: string; path: string | null; text: string; line: number }) =>
+    invoke<ResponseData>("run_request", args),
+  cancelRequest: (runId: string) => invoke<void>("cancel_request", { runId }),
+  readTextFile: (path: string) => invoke<string>("read_text_file", { path }),
+  writeTextFile: (path: string, contents: string) => invoke<void>("write_text_file", { path, contents }),
+  listHttpFiles: (root: string) => invoke<string[]>("list_http_files", { root }),
+  loadState: <T>(name: StateName) => invoke<T | null>("load_state", { name }),
+  saveState: (name: StateName, value: unknown) => invoke<void>("save_state", { name, value }),
+  watchRoots: (roots: string[]) => invoke<void>("watch_roots", { roots }),
+};
+
+export function toCrabError(e: unknown): CrabError {
+  if (e && typeof e === "object" && "kind" in e && "message" in e) return e as CrabError;
+  if (e instanceof Error) return { kind: "io", message: e.message };
+  return { kind: "io", message: String(e) };
+}

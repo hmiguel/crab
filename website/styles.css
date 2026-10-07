@@ -32,10 +32,6 @@ html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body { margin: 0; font: 17px/1.6 var(--sans); color: var(--ink); background: var(--sand); }
 a { color: var(--coral-text); text-underline-offset: 0.15em; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
-main:focus { outline: none; }
-/* Invisible and zero-size until a keyboard user tabs to it. */
-.skip { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.skip:focus-visible { left: 12px; top: 12px; z-index: 100; width: auto; height: auto; clip-path: none; padding: 10px 16px; border-radius: 8px; background: var(--ink); color: var(--sand); font-weight: 700; }
 figure { margin: 0; }
 code, kbd { font: 0.88em var(--mono); background: var(--sand-2); border-radius: 5px; padding: 0.1em 0.35em; }
 kbd { border: 1px solid var(--line); }

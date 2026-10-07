@@ -1,22 +1,23 @@
 :root {
-  --bg: #ffffff; --bg-alt: #f5f6f8; --bg-hover: #eceef2; --border: #dcdfe5;
-  --fg: #1f2328; --fg-muted: #6a737d; --accent: #2f6feb;
-  --active-line: #f3f6fc; --selection: #cfe0ff;
-  --ok: #1a7f37; --redirect: #0969da; --client-error: #bc4c00; --server-error: #cf222e;
-  --hl-separator: #8250df; --hl-comment: #6a737d; --hl-method: #0550ae; --hl-header: #953800;
-  --hl-var: #8250df; --hl-body: #0a3069; --hl-number: #0550ae;
-  --mono: "Cascadia Code", "JetBrains Mono", Consolas, ui-monospace, monospace;
-  --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+  /* Sand and coral, matching the website. */
+  --bg: #fffaf1; --bg-alt: #f6e3c2; --bg-hover: #efd6ab; --border: #ead7b5;
+  --fg: #1f2a33; --fg-muted: #6b6258; --accent: #f4724f;
+  --active-line: #fcf3e3; --selection: #fcd5c3;
+  --ok: #1a7f37; --redirect: #2c5c8a; --client-error: #b35c00; --server-error: #c62f2f;
+  --hl-separator: #8a4fd1; --hl-comment: #8f8475; --hl-method: #b3401f; --hl-header: #8a5a00;
+  --hl-var: #8a4fd1; --hl-body: #2c5c8a; --hl-number: #b3401f;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1e1f22; --bg-alt: #26282c; --bg-hover: #2f3237; --border: #3a3d42;
-    --fg: #e6e6e6; --fg-muted: #9aa0a6; --accent: #4c8dff;
-    --active-line: #26282d; --selection: #264f78;
-    --ok: #3fb950; --redirect: #58a6ff; --client-error: #d29922; --server-error: #f85149;
-    --hl-separator: #d2a8ff; --hl-comment: #8b949e; --hl-method: #79c0ff; --hl-header: #ffa657;
-    --hl-var: #d2a8ff; --hl-body: #a5d6ff; --hl-number: #79c0ff;
+    --bg: #1c1714; --bg-alt: #241e19; --bg-hover: #2f2721; --border: #3a3029;
+    --fg: #f3e9dc; --fg-muted: #b3a797; --accent: #f4724f;
+    --active-line: #26201b; --selection: #4b2b21;
+    --ok: #3fb950; --redirect: #9cc8f2; --client-error: #f0b862; --server-error: #ff6b6b;
+    --hl-separator: #c9a2ff; --hl-comment: #8f8475; --hl-method: #ff9a7a; --hl-header: #f0b862;
+    --hl-var: #c9a2ff; --hl-body: #9cc8f2; --hl-number: #ff9a7a;
     color-scheme: dark;
   }
 }
@@ -52,7 +53,7 @@ kbd { font: 11px var(--mono); border: 1px solid var(--border); border-radius: 3p
 .twisty { width: 14px; padding: 0; color: var(--fg-muted); text-align: center; flex: none; }
 .hint { padding: 2px 8px 4px 30px; color: var(--fg-muted); font-size: 12px; }
 .hint.error { color: var(--server-error); }
-.method { font: 600 10px var(--mono); min-width: 44px; color: var(--hl-method); }
+.method { font: 600 10px var(--mono); min-width: 44px; color: var(--hl-body); }
 .m-post { color: var(--ok); } .m-put, .m-patch { color: var(--client-error); } .m-delete { color: var(--server-error); }
 
 /* tabs + editor */
@@ -75,7 +76,8 @@ kbd { font: 11px var(--mono); border: 1px solid var(--border); border-radius: 3p
 .status.ok { color: var(--ok); } .status.redirect { color: var(--redirect); }
 .status.client-error { color: var(--client-error); } .status.server-error { color: var(--server-error); }
 .subtabs { display: flex; gap: 2px; padding: 4px 6px; border-bottom: 1px solid var(--border); }
-.subtabs button.active { background: var(--bg-hover); border-color: var(--border); }
+.subtabs button { border-radius: 5px; }
+.subtabs button.active { background: var(--bg-alt); color: var(--fg); }
 .response-content { flex: 1; min-height: 0; overflow: auto; user-select: text; }
 .codeview { height: 100%; }
 .codeview .cm-editor { height: 100%; }

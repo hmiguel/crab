@@ -22,8 +22,11 @@
    - checks that the tag matches the version;
    - regenerates the third-party notices for each platform;
    - builds a universal macOS `.dmg` and the Windows `.msi`/`.exe`;
-   - creates a **draft** GitHub release with them attached.
-6. Test the installers, then publish the draft on GitHub.
+   - creates a GitHub release for the tag with them attached, as a draft while the builds run;
+   - publishes the release once every platform has built (a tag with `-`, like `v0.2.0-beta.1`, is published as a **pre-release**).
+6. If a build fails, the release stays a draft: fix the problem, delete the tag (`git push --delete origin vX.Y.Z && git tag -d vX.Y.Z`) and tag again.
+
+**Betas:** use a pre-release version such as `0.2.0-beta.1` (tag `v0.2.0-beta.1`). The workflow marks the release as a pre-release and, because WiX rejects such versions, builds only the NSIS `-setup.exe` on Windows. The website's download button offers the newest stable release, or the newest beta while there is no stable one.
 
 To build installers without a release, run the workflow manually with `gh workflow run Release`. The installers are attached to the run as artifacts.
 

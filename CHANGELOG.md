@@ -1,0 +1,28 @@
+# Changelog
+
+All notable changes to Crab are documented here.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+## [0.1.0] - 2026-10-07
+
+First public release.
+
+### Added
+- `.http` / `.rest` parser compatible with the JetBrains HTTP Client and VS Code REST Client formats:
+  - `###` separators, `# @name`, comments, multi-line query strings, headers and bodies.
+  - `< file` bodies.
+  - JetBrains response handlers are skipped and never sent.
+- Variables: `@name = value` file variables, nested references, `{{$guid}}`, `{{$uuid}}`, `{{$timestamp}}` and `{{$randomInt}}`. Circular references produce an error.
+- Requests run with timing (total, time to first byte), a redirect limit, a 30 s timeout, a 50 MB body cap and cancellation (<kbd>Esc</kbd>).
+- Workspace of virtual folders spanning several repositories, with a live file tree.
+- Editor tabs with `.http` highlighting, ▶ run markers, inline warnings and session restore, including unsaved drafts.
+- Response panel: pretty JSON (big integers preserved), raw, headers, timing, the resolved request, and inline images.
+- macOS menu: <kbd>⌘W</kbd> closes the tab and <kbd>⌘Q</kbd> saves the session before quitting.
+- Windows line endings and a UTF-8 BOM are preserved on save.
+- Light and dark themes following the OS.
+- Installers for macOS (universal `.dmg`) and Windows (`.msi`, NSIS `.exe`).
+
+[Unreleased]: https://github.com/hmiguel/crab/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/hmiguel/crab/releases/tag/v0.1.0

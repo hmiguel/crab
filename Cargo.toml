@@ -1,3 +1,11 @@
 [workspace]
 resolver = "2"
 members = ["crates/crab-core", "src-tauri"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Hugo Conceicao"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/hmiguel/crab"
+homepage = "https://github.com/hmiguel/crab"

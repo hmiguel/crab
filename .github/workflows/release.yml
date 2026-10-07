@@ -53,7 +53,7 @@ jobs:
           releaseBody: |
             See [CHANGELOG.md](https://github.com/hmiguel/crab/blob/main/CHANGELOG.md) for what's new.
 
-            **macOS** (Apple Silicon and Intel): download the `.dmg`. Builds are not signed yet. On first launch, right-click Crab in Applications and choose **Open**, or run `xattr -dr com.apple.quarantine /Applications/Crab.app`.
+            **macOS** (Apple Silicon and Intel): download the `.dmg` and drag Crab to Applications. Builds are not signed. To allow the first launch, open Crab, then go to **System Settings → Privacy & Security → Open Anyway** (on macOS 14 and earlier, right-click the app and choose **Open**), or run `xattr -dr com.apple.quarantine /Applications/Crab.app`.
 
             **Windows**: download the `.msi` or `-setup.exe`. SmartScreen will warn about the unsigned installer; choose **More info → Run anyway**.
           releaseDraft: true

@@ -2,11 +2,15 @@
 
 # Crab
 
+[![CI](https://github.com/hmiguel/crab/actions/workflows/ci.yml/badge.svg)](https://github.com/hmiguel/crab/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/hmiguel/crab?include_prereleases)](https://github.com/hmiguel/crab/releases)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](#license)
+
 An open-source, cross-platform desktop API client for plain `.http` / `.rest` files.
 
 Your requests stay as text files in your repositories. Crab doesn't need an account, a cloud sync or a proprietary collection format. It reads the same files as the JetBrains HTTP Client and the VS Code REST Client, so your team can keep using whatever editor they like.
 
-> **Status:** v0.1, early. macOS (Apple Silicon) is the primary development platform. Windows installers are built by CI but are not tested yet.
+> **Status:** v0.1, early. macOS is the primary development platform. Windows installers are built by CI but are not tested yet.
 
 ## Features
 
@@ -29,7 +33,7 @@ Your requests stay as text files in your repositories. Crab doesn't need an acco
 
 ### macOS
 
-1. Download the latest `Crab_<version>_aarch64.dmg` from [Releases](../../releases). It is for Apple Silicon.
+1. Download the latest `Crab_<version>_universal.dmg` from [Releases](../../releases). It runs on both Apple Silicon and Intel Macs.
 2. Open the `.dmg` and drag **Crab** to **Applications**.
 3. Builds are not signed yet, so macOS blocks the first launch. Either right-click **Crab** in Applications and choose **Open**, or run:
 
@@ -153,8 +157,12 @@ See [ROADMAP.md](ROADMAP.md) for details.
 
 ## Contributing
 
-Issues and pull requests are welcome. Please run the test commands above before opening a PR. CI runs the same checks on macOS and Windows.
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security issues privately as described in [SECURITY.md](SECURITY.md). Release steps are in [RELEASING.md](RELEASING.md), and changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
 Licensed under either of [Apache License 2.0](LICENSE-APACHE) or [MIT license](LICENSE-MIT), at your option.
+
+Unless you explicitly state otherwise, any contribution you intentionally submit for inclusion in Crab is dual-licensed as above, without any additional terms or conditions.
+
+Crab bundles third-party open-source software; their licenses are listed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md), which also ships inside the app.

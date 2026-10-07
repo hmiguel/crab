@@ -9,7 +9,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        include:
+          - os: macos-latest
+            rust_targets: aarch64-apple-darwin,x86_64-apple-darwin
+            tauri_args: --target universal-apple-darwin
+            bundle_dir: target/universal-apple-darwin/release/bundle
+          - os: windows-latest
+            rust_targets: ""
+            tauri_args: ""
+            bundle_dir: target/release/bundle
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
@@ -23,20 +31,38 @@ jobs:
           node-version: 22
           cache: pnpm
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_targets }}
       - uses: swatinem/rust-cache@v2
       - run: pnpm install --frozen-lockfile
+
+      - name: Check that the tag matches the app version
+        if: github.ref_type == 'tag'
+        run: node scripts/version.mjs check ${{ github.ref_name }}
+
+      - name: Regenerate third-party license notices for this platform
+        run: pnpm notices
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          args: ${{ matrix.tauri_args }}
           tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
           releaseName: "Crab ${{ github.ref_name }}"
+          releaseBody: |
+            See [CHANGELOG.md](https://github.com/hmiguel/crab/blob/main/CHANGELOG.md) for what's new.
+
+            **macOS** (Apple Silicon and Intel): download the `.dmg`. Builds are not signed yet. On first launch, right-click Crab in Applications and choose **Open**, or run `xattr -dr com.apple.quarantine /Applications/Crab.app`.
+
+            **Windows**: download the `.msi` or `-setup.exe`. SmartScreen will warn about the unsigned installer; choose **More info → Run anyway**.
           releaseDraft: true
+
       - uses: actions/upload-artifact@v4
         with:
           name: crab-${{ matrix.os }}
           path: |
-            target/release/bundle/msi/*.msi
-            target/release/bundle/nsis/*.exe
-            target/release/bundle/dmg/*.dmg
-          if-no-files-found: ignore
+            ${{ matrix.bundle_dir }}/dmg/*.dmg
+            ${{ matrix.bundle_dir }}/msi/*.msi
+            ${{ matrix.bundle_dir }}/nsis/*.exe
+          if-no-files-found: error

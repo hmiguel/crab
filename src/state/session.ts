@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { api } from "../api";
 import { debounce } from "../lib/debounce";
-import { detectEol, toLf, type Eol } from "../lib/eol";
+import { decodeDisk, type Eol } from "../lib/eol";
 import { samePath } from "../lib/paths";
 import { isDirty, useTabs, type Tab } from "./tabs";
 
@@ -31,10 +31,9 @@ export async function restoreSession(): Promise<void> {
   for (const st of session.tabs) {
     let disk: string | null = null;
     let eol: Eol = "\n";
+    let bom = false;
     try {
-      const raw = await api.readTextFile(st.path);
-      disk = toLf(raw);
-      eol = detectEol(raw);
+      ({ text: disk, eol, bom } = decodeDisk(await api.readTextFile(st.path)));
     } catch {
       // file deleted or moved: keep the tab only if it holds an unsaved draft
     }
@@ -44,6 +43,7 @@ export async function restoreSession(): Promise<void> {
       text: st.draft ?? disk ?? "",
       savedText: disk ?? "",
       eol,
+      bom,
       cursor: st.cursor,
       scrollTop: st.scrollTop,
     });

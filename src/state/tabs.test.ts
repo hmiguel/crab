@@ -65,3 +65,13 @@ test("closing the active tab activates its right neighbour, then the left one", 
   useTabs.getState().closeTab(c);
   expect(useTabs.getState().activeId).toBe(a);
 });
+
+test("BOM files open without the BOM in the text and keep it on save", async () => {
+  vi.mocked(api.readTextFile).mockResolvedValue("﻿GET https://x.test\r\n");
+  await useTabs.getState().openFile("/r/bom.http");
+  const tab = useTabs.getState().tabs[0];
+  expect(tab.text).toBe("GET https://x.test\n");
+  useTabs.getState().setText(tab.id, "POST https://x.test\n");
+  await useTabs.getState().save(tab.id);
+  expect(api.writeTextFile).toHaveBeenCalledWith("/r/bom.http", "﻿POST https://x.test\r\n");
+});

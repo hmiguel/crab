@@ -1,29 +1,55 @@
-import { useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ask, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { api, type RequestBlock } from "../api";
-import { basename, joinPath, samePath } from "../lib/paths";
+import { lineAtOffset, requestIndexAt } from "../lib/outline";
+import { basename, isUnder, joinPath, normPath, samePath } from "../lib/paths";
 import { buildTree, type TreeNode } from "../lib/tree";
+import { useOutline } from "../state/outline";
 import { useTabs } from "../state/tabs";
 import { useWorkspace, type VirtualFolder } from "../state/workspace";
 import { showError } from "../ui/actions";
 
+/** The file and 0-based cursor line of the active tab; the tree follows it. */
+type ActiveLocation = { path: string | null; line: number };
+const Active = createContext<ActiveLocation>({ path: null, line: 0 });
+
+/** Expand a tree level whenever the active file moves somewhere inside it. */
+function useRevealExpanded(contains: (path: string) => boolean, initial: boolean) {
+  const { path } = useContext(Active);
+  const state = useState(initial);
+  const [, setExpanded] = state;
+  // Only on navigation, so the user can still collapse a level afterwards.
+  useEffect(() => {
+    if (path && contains(path)) setExpanded(true);
+  }, [path]);
+  return state;
+}
+
 export function Sidebar() {
   const folders = useWorkspace((s) => s.folders);
+  const path = useTabs((s) => s.tabs.find((t) => t.id === s.activeId)?.path ?? null);
+  const line = useTabs((s) => {
+    const t = s.tabs.find((x) => x.id === s.activeId);
+    return t ? lineAtOffset(t.text, t.cursor) : 0;
+  });
+  const active = useMemo(() => ({ path, line }), [path, line]);
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <span>Workspace</span>
-        <button title="New virtual folder" onClick={() => useWorkspace.getState().addFolder("New folder")}>＋</button>
-      </div>
-      <div className="sidebar-body">
-        {folders.map((f) => <FolderView key={f.id} folder={f} />)}
-      </div>
-    </aside>
+    <Active.Provider value={active}>
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <span>Workspace</span>
+          <button title="New virtual folder" onClick={() => useWorkspace.getState().addFolder("New folder")}>＋</button>
+        </div>
+        <div className="sidebar-body">
+          {folders.map((f) => <FolderView key={f.id} folder={f} />)}
+        </div>
+      </aside>
+    </Active.Provider>
   );
 }
 
 function FolderView({ folder }: { folder: VirtualFolder }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useRevealExpanded((p) => folder.roots.some((r) => isUnder(p, r)), true);
   const [editing, setEditing] = useState(false);
   const ws = useWorkspace.getState();
 
@@ -69,7 +95,7 @@ function FolderView({ folder }: { folder: VirtualFolder }) {
 function RootView({ folderId, root }: { folderId: string; root: string }) {
   const files = useWorkspace((s) => s.files[root]);
   const error = useWorkspace((s) => s.rootErrors[root]);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useRevealExpanded((p) => isUnder(p, root), true);
   const tree = useMemo(() => buildTree(files ?? []), [files]);
 
   return (
@@ -97,7 +123,7 @@ function RootView({ folderId, root }: { folderId: string; root: string }) {
 }
 
 function NodeView({ node, root, depth }: { node: TreeNode; root: string; depth: number }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useRevealExpanded((p) => isUnder(p, joinPath(root, node.rel)), false);
   if (node.children === null) return <FileNode node={node} root={root} depth={depth} />;
   return (
     <li>
@@ -112,31 +138,56 @@ function NodeView({ node, root, depth }: { node: TreeNode; root: string; depth: 
 
 function FileNode({ node, root, depth }: { node: TreeNode; root: string; depth: number }) {
   const path = joinPath(root, node.rel);
-  const [requests, setRequests] = useState<RequestBlock[] | null>(null);
-  const selected = useTabs((s) => s.tabs.some((t) => t.id === s.activeId && samePath(t.path, path)));
+  const active = useContext(Active);
+  const isActive = active.path !== null && samePath(active.path, path);
+  const [expanded, setExpanded] = useRevealExpanded((p) => samePath(p, path), false);
+  const [diskRequests, setDiskRequests] = useState<RequestBlock[] | null>(null);
+  // While the file is open, list what the editor has (unsaved edits included).
+  const isOpen = useTabs((s) => s.tabs.some((t) => samePath(t.path, path)));
+  const live = useOutline((s) => s.byPath[normPath(path)]);
+  const requests = (isOpen ? live : undefined) ?? diskRequests;
+  const current = isActive && requests ? requestIndexAt(requests, active.line) : null;
+  const currentRow = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!expanded || (isOpen && live)) return;
+    let stale = false;
+    api.readTextFile(path).then(api.parseText).then((p) => { if (!stale) setDiskRequests(p.requests); }).catch(showError);
+    return () => { stale = true; };
+  }, [expanded, path, isOpen]);
+
+  useEffect(() => {
+    currentRow.current?.scrollIntoView({ block: "nearest" });
+  }, [current, isActive, expanded]);
 
   const toggle = async () => {
-    if (requests) {
-      setRequests(null);
+    if (expanded) {
+      setExpanded(false);
       return;
     }
+    setExpanded(true);
     await useTabs.getState().openFile(path);
-    const parsed = await api.parseText(await api.readTextFile(path));
-    setRequests(parsed.requests);
   };
 
+  const fileSelected = isActive && (!expanded || current === null);
   return (
     <li>
-      <div className={`row file${selected ? " selected" : ""}`} style={{ paddingLeft: depth * 12 }} onClick={() => toggle().catch(showError)}>
-        <span className="twisty">{requests ? "▾" : "▸"}</span>
+      <div
+        ref={fileSelected ? currentRow : undefined}
+        className={`row file${fileSelected ? " selected" : ""}${isActive ? " current" : ""}`}
+        style={{ paddingLeft: depth * 12 }}
+        onClick={() => toggle().catch(showError)}
+      >
+        <span className="twisty">{expanded ? "▾" : "▸"}</span>
         <span className="label">{node.name}</span>
       </div>
-      {requests && (
+      {expanded && requests && (
         <ul className="tree">
-          {requests.map((r) => (
+          {requests.map((r, i) => (
             <li key={r.requestLine}>
               <div
-                className="row request"
+                ref={i === current ? currentRow : undefined}
+                className={`row request${i === current ? " selected" : ""}`}
                 style={{ paddingLeft: (depth + 1) * 12 }}
                 onClick={() => useTabs.getState().openFile(path, r.requestLine).catch(showError)}
               >

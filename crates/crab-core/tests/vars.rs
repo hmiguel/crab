@@ -117,3 +117,12 @@ fn prepare_request_reads_body_file_relative_to_the_http_file() {
     let no_base = prepare_request("POST https://x.test\n\n< ./payload.json\n", 0, None, &NoEnv).unwrap_err();
     assert_eq!(no_base.kind, ErrorKind::Io);
 }
+
+#[test]
+fn fan_out_self_reference_fails_fast() {
+    let v = vars(&[("a", "{{a}}{{a}}{{a}}{{a}}{{a}}{{a}}")]);
+    let start = std::time::Instant::now();
+    let err = Resolver::new(&v, &NoEnv).resolve("{{a}}").unwrap_err();
+    assert!(err.message.contains("circular"), "{}", err.message);
+    assert!(start.elapsed() < std::time::Duration::from_secs(1), "took {:?}", start.elapsed());
+}

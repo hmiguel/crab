@@ -142,3 +142,13 @@ fn fixture_jetbrains_style_file() {
     assert_eq!(p.requests[2].url, "https://{{host}}/delete");
     assert!(p.diagnostics.is_empty());
 }
+
+#[test]
+fn response_handler_right_after_headers_is_not_part_of_body() {
+    let p = parse("GET http://x.test\nAccept: */*\n> {%\n  client.test(\"a\", function() {\n\n    client.assert(true);\n  });\n%}\n");
+    assert_eq!(p.requests[0].body, None);
+    assert!(p.diagnostics.is_empty(), "{:?}", p.diagnostics);
+    let p = parse("GET http://x.test\n>> ./out.json\n");
+    assert_eq!(p.requests[0].body, None);
+    assert!(p.diagnostics.is_empty());
+}

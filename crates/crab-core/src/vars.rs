@@ -52,19 +52,26 @@ impl<'a> Resolver<'a> {
     }
 
     pub(crate) fn resolve_into(&self, input: &str, missing: &mut Vec<String>) -> String {
-        self.expand(input, 0, missing)
+        self.expand(input, &mut Vec::new(), missing)
     }
 
-    fn expand(&self, input: &str, depth: usize, missing: &mut Vec<String>) -> String {
+    /// `stack` holds the variable names being expanded, so a cycle is reported on its first re-entry
+    /// (bounding the work even for fan-out definitions like `@a = {{a}}{{a}}`).
+    fn expand(&self, input: &str, stack: &mut Vec<String>, missing: &mut Vec<String>) -> String {
         placeholder()
             .replace_all(input, |caps: &Captures<'_>| {
                 let expr = caps[1].trim();
+                if stack.len() >= MAX_DEPTH || stack.iter().any(|s| s == expr) {
+                    missing.push(format!("{expr} (circular reference)"));
+                    return caps[0].to_string();
+                }
                 match self.lookup(expr) {
-                    Some(_) if depth >= MAX_DEPTH => {
-                        missing.push(format!("{expr} (circular reference)"));
-                        caps[0].to_string()
+                    Some(value) => {
+                        stack.push(expr.to_string());
+                        let out = self.expand(&value, stack, missing);
+                        stack.pop();
+                        out
                     }
-                    Some(value) => self.expand(&value, depth + 1, missing),
                     None => {
                         missing.push(expr.to_string());
                         caps[0].to_string()

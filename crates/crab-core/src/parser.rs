@@ -38,6 +38,23 @@ impl BlockBuilder {
         }
     }
 
+    /// Skips JetBrains response-handler lines (`> {% … %}`, `>> file`, …). Returns true when `trimmed` was consumed.
+    fn skip_handler_line(&mut self, trimmed: &str) -> bool {
+        if self.in_handler {
+            if trimmed.ends_with("%}") {
+                self.in_handler = false;
+            }
+            return true;
+        }
+        if let Some(rest) = trimmed.strip_prefix("> {%") {
+            if !rest.trim_end().ends_with("%}") {
+                self.in_handler = true;
+            }
+            return true;
+        }
+        is_handler_start(trimmed)
+    }
+
     fn finish(self, end_line: usize, out: &mut ParsedFile) {
         let Some(request_line) = self.request_line else { return };
         let mut lines = self.body_lines;
@@ -123,6 +140,12 @@ pub fn parse(text: &str) -> ParsedFile {
                 if comment_text(trimmed).is_some() {
                     continue;
                 }
+                // A handler may follow the headers without a blank line; the body (if any) is over.
+                if is_handler_start(trimmed) {
+                    block.phase = Phase::Body;
+                    block.skip_handler_line(trimmed);
+                    continue;
+                }
                 match trimmed.split_once(':') {
                     Some((name, value)) if is_header_name(name.trim()) => block.headers.push(Header {
                         name: name.trim().to_string(),
@@ -132,28 +155,19 @@ pub fn parse(text: &str) -> ParsedFile {
                 }
             }
             Phase::Body => {
-                if block.in_handler {
-                    if trimmed.ends_with("%}") {
-                        block.in_handler = false;
-                    }
-                    continue;
+                if !block.skip_handler_line(trimmed) {
+                    block.body_lines.push(line.to_string());
                 }
-                if let Some(rest) = trimmed.strip_prefix("> {%") {
-                    if !rest.trim_end().ends_with("%}") {
-                        block.in_handler = true;
-                    }
-                    continue;
-                }
-                if ["> ", ">> ", ">>! ", "<> "].iter().any(|p| trimmed.starts_with(p)) {
-                    continue;
-                }
-                block.body_lines.push(line.to_string());
             }
         }
     }
 
     block.finish(lines.len().saturating_sub(1), &mut out);
     out
+}
+
+fn is_handler_start(trimmed: &str) -> bool {
+    ["> ", ">> ", ">>! ", "<> "].iter().any(|p| trimmed.starts_with(p))
 }
 
 fn comment_text(trimmed: &str) -> Option<&str> {

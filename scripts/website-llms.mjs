@@ -17,11 +17,12 @@ export function absolutizeLinks(md) {
 }
 
 export function buildLlmsFull(root) {
-  const readme = readFileSync(join(root, "README.md"), "utf8")
+  const read = (file) => readFileSync(join(root, file), "utf8").replace(/\r\n/g, "\n");
+  const readme = read("README.md")
     .replace(/^<p align="center">.*<\/p>\n+/m, "") // logo
     .replace(/^\[!\[.*\n/gm, "") // badges
     .replace(/\n{3,}/g, "\n\n");
-  const changelog = readFileSync(join(root, "CHANGELOG.md"), "utf8").replace(/^# Changelog\n/, "");
+  const changelog = read("CHANGELOG.md").replace(/^# Changelog\n/, "");
   return [
     "<!-- Generated from README.md and CHANGELOG.md by scripts/website-llms.mjs. Do not edit. -->",
     `Website: https://crab-ekq.pages.dev/ · Source: ${REPO}`,

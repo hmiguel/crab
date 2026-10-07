@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { expect, test } from "vitest";
 import { absolutizeLinks, buildLlmsFull } from "./website-llms.mjs";
 
-const root = new URL("..", import.meta.url).pathname;
+const root = fileURLToPath(new URL("..", import.meta.url));
 
 test("relative README links become absolute GitHub links; absolute links and anchors stay", () => {
   const md = "[a](LICENSE-MIT) [b](../../releases) [c](https://x.dev) [d](#license) ![i](docs/assets/crab-icon.png)";
@@ -12,5 +13,6 @@ test("relative README links become absolute GitHub links; absolute links and anc
 });
 
 test("website/llms-full.txt is up to date (run: pnpm site:llms)", () => {
-  expect(readFileSync(`${root}website/llms-full.txt`, "utf8")).toBe(buildLlmsFull(root));
+  // Windows checkouts may use CRLF.
+  expect(readFileSync(`${root}website/llms-full.txt`, "utf8").replace(/\r\n/g, "\n")).toBe(buildLlmsFull(root));
 });

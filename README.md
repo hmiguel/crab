@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/assets/crab-icon.png" width="128" alt="Crab"></p>
+
 # Crab
 
 An open-source, cross-platform desktop API client for plain `.http` / `.rest` files.

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Crab mascot: flat, chubby, big googly eyes, a smile and buck teeth. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FCEBCB"/>
+      <stop offset="1" stop-color="#F2CD8E"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#1F2A33" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <!-- background tile -->
+    <rect x="72" y="72" width="880" height="880" rx="196" fill="url(#bg)" stroke="none"/>
+
+    <!-- legs (behind body) -->
+    <g fill="none" stroke-width="30">
+      <path d="M262 640 Q170 660 150 740" />
+      <path d="M272 700 Q200 740 196 812" />
+      <path d="M310 748 Q262 800 270 860" />
+      <path d="M762 640 Q854 660 874 740" />
+      <path d="M752 700 Q824 740 828 812" />
+      <path d="M714 748 Q762 800 754 860" />
+    </g>
+    <g fill="none" stroke="#F4724F" stroke-width="12">
+      <path d="M262 640 Q170 660 150 740" />
+      <path d="M272 700 Q200 740 196 812" />
+      <path d="M310 748 Q262 800 270 860" />
+      <path d="M762 640 Q854 660 874 740" />
+      <path d="M752 700 Q824 740 828 812" />
+      <path d="M714 748 Q762 800 754 860" />
+    </g>
+
+    <!-- arms -->
+    <path d="M300 560 Q220 500 230 400" fill="none" stroke-width="44"/>
+    <path d="M300 560 Q220 500 230 400" fill="none" stroke="#F4724F" stroke-width="22"/>
+    <path d="M724 560 Q804 500 794 400" fill="none" stroke-width="44"/>
+    <path d="M724 560 Q804 500 794 400" fill="none" stroke="#F4724F" stroke-width="22"/>
+
+    <!-- claws: rounded pincers with a notch -->
+    <path d="M232 410 C140 410 120 300 170 250 C200 220 240 222 252 252 L222 300 L276 284 C300 330 290 410 232 410 Z" fill="#F4724F"/>
+    <path d="M792 410 C884 410 904 300 854 250 C824 220 784 222 772 252 L802 300 L748 284 C724 330 734 410 792 410 Z" fill="#F4724F"/>
+
+    <!-- body -->
+    <ellipse cx="512" cy="640" rx="290" ry="215" fill="#F4724F"/>
+    <!-- belly highlight -->
+    <ellipse cx="512" cy="712" rx="190" ry="110" fill="#F99A7C" stroke="none"/>
+
+    <!-- eyes: big, white, slightly uneven, pupils looking off to the side (gopher style) -->
+    <circle cx="404" cy="470" r="108" fill="#FFFFFF"/>
+    <circle cx="626" cy="462" r="116" fill="#FFFFFF"/>
+    <circle cx="430" cy="452" r="34" fill="#1F2A33" stroke="none"/>
+    <circle cx="656" cy="444" r="36" fill="#1F2A33" stroke="none"/>
+    <circle cx="442" cy="440" r="10" fill="#FFFFFF" stroke="none"/>
+    <circle cx="668" cy="431" r="11" fill="#FFFFFF" stroke="none"/>
+
+    <!-- mouth: a wide smile with buck teeth hanging under it -->
+    <path d="M440 618 Q512 668 584 618" fill="none" stroke-width="16"/>
+    <path d="M490 640 L490 690 Q490 700 500 700 L512 700 L512 643" fill="#FFFFFF" stroke-width="12"/>
+    <path d="M512 643 L512 700 L524 700 Q534 700 534 690 L534 640" fill="#FFFFFF" stroke-width="12"/>
+  </g>
+</svg>

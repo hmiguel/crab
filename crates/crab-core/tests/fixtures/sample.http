@@ -1,0 +1,23 @@
+@host = httpbin.org
+
+### Get anything
+GET https://{{host}}/get?show_env=1
+Accept: application/json
+
+### Create item
+# @name createItem
+POST https://{{host}}/post
+Content-Type: application/json
+X-Request-Id: {{$guid}}
+
+{
+  "name": "crab",
+  "createdAt": {{$timestamp}}
+}
+
+> {%
+  client.global.set("id", response.body.json.name);
+%}
+
+### Delete
+DELETE https://{{host}}/delete HTTP/1.1

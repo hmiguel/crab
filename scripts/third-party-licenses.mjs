@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Generates THIRD_PARTY_LICENSES.md: every Rust crate compiled into the app (normal dependencies
 // of the `crab` crate for this platform) and every production npm package bundled into the UI,
 // with their license texts. Identical texts are printed once. The file ships inside the app bundle.

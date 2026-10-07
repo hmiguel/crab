@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Keeps the app version in sync across package.json and the Cargo workspace
 // (tauri.conf.json has no version, so Tauri takes it from Cargo).
 //

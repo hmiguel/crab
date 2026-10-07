@@ -7,6 +7,10 @@ An open-source, cross-platform API client for plain `.http` / `.rest` files. You
 - Run the request under the cursor with **Ctrl+Enter** or the ▶ gutter
 - Response viewer: pretty JSON, raw, headers, timing and the exact resolved request
 
+## Download
+
+Grab the latest Windows installer (`.msi` or `-setup.exe`) or macOS `.dmg` from the [Releases](../../releases) page. Builds are currently unsigned, so Windows SmartScreen will ask you to confirm ("More info → Run anyway").
+
 See [ROADMAP.md](ROADMAP.md) for what comes next.
 
 ## Development

@@ -77,7 +77,9 @@ function hostTarget() {
 }
 
 function npmEntries(root) {
-  const byLicense = JSON.parse(execFileSync("pnpm", ["licenses", "list", "--prod", "--json"], { cwd: root, maxBuffer: 1 << 26 }).toString());
+  // On Windows pnpm is a .cmd shim, which only runs through a shell.
+  const pnpm = { cwd: root, maxBuffer: 1 << 26, shell: process.platform === "win32" };
+  const byLicense = JSON.parse(execFileSync("pnpm", ["licenses", "list", "--prod", "--json"], pnpm).toString());
   return Object.values(byLicense)
     .flat()
     .flatMap((p) =>

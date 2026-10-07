@@ -1,7 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Crab",
-  "version": "0.1.0",
   "identifier": "dev.crabhttp.desktop",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -11,13 +10,42 @@
   },
   "app": {
     "windows": [
-      { "title": "Crab", "width": 1280, "height": 800, "minWidth": 800, "minHeight": 500 }
+      {
+        "title": "Crab",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 500
+      }
     ],
-    "security": { "csp": null }
+    "security": {
+      "csp": null
+    }
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "publisher": "Hugo Conceicao",
+    "copyright": "Copyright © 2026 Hugo Conceicao. Licensed under MIT OR Apache-2.0.",
+    "category": "DeveloperTool",
+    "shortDescription": "API client for .http and .rest files",
+    "longDescription": "Crab is an open-source desktop API client for plain .http/.rest files: browse a multi-repo workspace, edit requests in tabs and run the request under the cursor.",
+    "homepage": "https://github.com/hmiguel/crab",
+    "license": "MIT OR Apache-2.0",
+    "resources": {
+      "../LICENSE-MIT": "LICENSE-MIT",
+      "../LICENSE-APACHE": "LICENSE-APACHE",
+      "../THIRD_PARTY_LICENSES.md": "THIRD_PARTY_LICENSES.md"
+    },
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    }
   }
 }

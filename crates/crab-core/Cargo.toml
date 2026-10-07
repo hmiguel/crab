@@ -1,8 +1,11 @@
 [package]
 name = "crab-core"
-version = "0.1.0"
-edition = "2021"
-license = "MIT OR Apache-2.0"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Parser, variable resolver and HTTP executor for .http files"
 
 [dependencies]

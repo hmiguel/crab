@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest an idea for Crab
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like Crab to do?
+      description: If it's about `.http` syntax, include an example file.
+    validations:
+      required: true
+  - type: checkboxes
+    id: roadmap
+    attributes:
+      label: Roadmap
+      options:
+        - label: I checked ROADMAP.md and this isn't already planned (or I'm adding detail to a planned item)

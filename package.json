@@ -2,13 +2,26 @@
   "name": "crab",
   "private": true,
   "version": "0.1.0",
+  "description": "Open-source desktop API client for .http/.rest files",
+  "author": "Hugo Conceicao",
+  "homepage": "https://github.com/hmiguel/crab",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hmiguel/crab.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hmiguel/crab/issues"
+  },
   "type": "module",
   "license": "MIT OR Apache-2.0",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run --passWithNoTests",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "version:check": "node scripts/version.mjs check",
+    "version:set": "node scripts/version.mjs set",
+    "notices": "node scripts/third-party-licenses.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

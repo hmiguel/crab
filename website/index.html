@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crab — a desktop API client for .http files</title>
+  <meta name="description" content="Crab is a free, open-source desktop API client for plain .http and .rest files. Your requests stay as text files in your repos.">
+  <meta property="og:title" content="Crab — a desktop API client for .http files">
+  <meta property="og:description" content="Free and open source. Your API requests are just files.">
+  <meta property="og:image" content="assets/crab.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/svg+xml" href="assets/crab.svg">
+  <link rel="apple-touch-icon" href="assets/crab.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#top"><img src="assets/crab.svg" alt="" width="28" height="28"> Crab</a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#syntax">Syntax</a>
+      <a href="#install">Install</a>
+      <a class="gh" href="https://github.com/hmiguel/crab">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <img class="mascot" src="assets/crab.svg" alt="Crab mascot" width="168" height="168">
+      <h1>Your API requests are <span class="hl">just files</span>.</h1>
+      <p class="lede">Crab is a free, open-source desktop client for plain <code>.http</code> and <code>.rest</code> files. Keep requests in your repos, review them in pull requests and run them with one keystroke. No account and no cloud.</p>
+      <div class="cta">
+        <a id="download" class="btn primary" href="https://github.com/hmiguel/crab/releases/latest">Download Crab</a>
+        <a class="btn" href="https://github.com/hmiguel/crab">View source</a>
+      </div>
+      <p id="download-note" class="note">macOS (Apple Silicon &amp; Intel) · Windows · MIT OR Apache-2.0</p>
+    </section>
+
+    <section class="shot" aria-label="Crab app preview">
+      <div class="window">
+        <div class="titlebar"><span></span><span></span><span></span><b>Crab</b></div>
+        <div class="app">
+          <aside class="side">
+            <div class="side-h">Workspace</div>
+            <div class="row strong">▾ APIs</div>
+            <div class="row muted">▾ shop-backend</div>
+            <div class="row file sel">▾ orders.http</div>
+            <div class="row req"><i class="m get">GET</i> List orders</div>
+            <div class="row req"><i class="m post">POST</i> Create order</div>
+            <div class="row file">▸ auth.http</div>
+            <div class="row muted">▸ payments-api</div>
+          </aside>
+          <div class="editor">
+            <div class="tabs"><span class="tab on">orders.http</span><span class="tab">auth.http <i>●</i></span></div>
+<pre class="code"><span class="ln">1</span><span class="at">@host</span> = api.shop.test
+<span class="ln">2</span>
+<span class="ln">3</span><span class="sep">### List orders</span>
+<span class="ln run">4</span><span class="kw">GET</span> https://<span class="var">{{host}}</span>/orders?status=open
+<span class="ln">5</span><span class="hd">Accept</span>: application/json
+<span class="ln">6</span>
+<span class="ln">7</span><span class="sep">### Create order</span>
+<span class="ln run">8</span><span class="kw">POST</span> https://<span class="var">{{host}}</span>/orders
+<span class="ln">9</span><span class="hd">Content-Type</span>: application/json
+<span class="ln">10</span><span class="hd">X-Request-Id</span>: <span class="var">{{$guid}}</span>
+<span class="ln">11</span>
+<span class="ln">12</span><span class="str">{ "sku": "crab-001", "qty": 2 }</span></pre>
+          </div>
+          <div class="resp">
+            <div class="resp-h"><b class="ok">201 Created</b><span>84 ms</span><span>212 B</span></div>
+            <div class="sub"><span class="on">Body</span><span>Raw</span><span>Headers (7)</span><span>Timing</span><span>Request</span></div>
+<pre class="code">{
+  <span class="hd">"id"</span>: <span class="num">12345678901234567890</span>,
+  <span class="hd">"sku"</span>: <span class="str">"crab-001"</span>,
+  <span class="hd">"qty"</span>: <span class="num">2</span>,
+  <span class="hd">"status"</span>: <span class="str">"open"</span>
+}</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <h2>Everything you need, nothing you don't</h2>
+      <div class="grid">
+        <article><h3>📁 Files, not collections</h3><p>Requests live as <code>.http</code> files next to your code. Version them with Git and share them in pull requests. The same files work in JetBrains IDEs and the VS Code REST Client.</p></article>
+        <article><h3>🗂️ One workspace, many repos</h3><p>Group folders from any number of repositories into virtual folders. The sidebar shows every file and the requests inside it.</p></article>
+        <article><h3>⚡ Run at the cursor</h3><p>Press <kbd>⌘</kbd><kbd>Enter</kbd> or click ▶ to send the request you're editing, unsaved changes included. <kbd>Esc</kbd> cancels it.</p></article>
+        <article><h3>🔍 A response viewer that tells the truth</h3><p>Pretty, foldable JSON that never rounds big IDs, plus raw output, headers, timing, inline images and the exact request that was sent.</p></article>
+        <article><h3>🧩 Variables</h3><p>Use <code>@host = …</code> file variables, nested <code>{{references}}</code>, <code>{{$guid}}</code>, <code>{{$timestamp}}</code> and <code>{{$randomInt}}</code>. Missing or circular variables show a clear error.</p></article>
+        <article><h3>💾 Never lose work</h3><p>Tabs, cursors, layout and unsaved drafts come back after a restart. Line endings and BOMs are kept, so Windows files stay unchanged.</p></article>
+      </div>
+    </section>
+
+    <section id="syntax" class="syntax">
+      <h2>Plain text you already know</h2>
+      <p>Crab uses the widely supported <code>.http</code> format. If you've used the JetBrains HTTP Client or VS Code REST Client, you already know it.</p>
+<pre class="code card"><span class="at">@host</span> = httpbin.org
+
+<span class="sep">### Get something</span>
+<span class="kw">GET</span> https://<span class="var">{{host}}</span>/get
+<span class="hd">Accept</span>: application/json
+
+<span class="sep">### Send a file as the body</span>
+<span class="kw">POST</span> https://<span class="var">{{host}}</span>/post
+<span class="hd">Content-Type</span>: application/json
+
+<span class="str">&lt; ./payload.json</span></pre>
+    </section>
+
+    <section id="install" class="install">
+      <h2>Install</h2>
+      <div class="grid two">
+        <article>
+          <h3>macOS</h3>
+          <p>Download the <code>.dmg</code>. It runs on Apple Silicon and Intel. Drag Crab to Applications.</p>
+          <p class="small">Crab isn't signed with a paid Apple certificate yet, so macOS asks once. Open Crab, then go to <b>System Settings → Privacy &amp; Security → Open Anyway</b>. Or run:</p>
+          <pre class="code inline">xattr -dr com.apple.quarantine /Applications/Crab.app</pre>
+        </article>
+        <article>
+          <h3>Windows</h3>
+          <p>Download the <code>.msi</code> or <code>-setup.exe</code> installer.</p>
+          <p class="small">SmartScreen may warn about an unsigned app. Choose <b>More info → Run anyway</b>.</p>
+        </article>
+      </div>
+      <p class="center"><a class="btn primary" href="https://github.com/hmiguel/crab/releases/latest">All downloads</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <p><img src="assets/crab.svg" alt="" width="20" height="20"> Crab is free and open source, licensed under MIT OR Apache-2.0.</p>
+    <p><a href="https://github.com/hmiguel/crab">GitHub</a> · <a href="https://github.com/hmiguel/crab/blob/main/CHANGELOG.md">Changelog</a> · <a href="https://github.com/hmiguel/crab/blob/main/ROADMAP.md">Roadmap</a> · <a href="https://github.com/hmiguel/crab/issues">Report an issue</a></p>
+  </footer>
+
+  <script type="module" src="download.js"></script>
+</body>
+</html>

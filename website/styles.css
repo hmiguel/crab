@@ -127,6 +127,11 @@ footer .made { margin-top: 14px; font-size: 0.88rem; }
   .grid, .grid.two { grid-template-columns: minmax(0, 1fr); }
   .app { grid-template-columns: minmax(0, 1fr); min-height: 0; }
   .side, .resp { display: none; }
+  /* Fit the mockup's longest line on a phone instead of cutting it off. */
+  .shot .code { font-size: clamp(9px, 2.55vw, 13px); padding: 12px 10px; }
+  .shot .ln { width: 2.2em; }
+  /* Let long commands wrap rather than scroll sideways. */
+  .code.inline { white-space: pre-wrap; overflow-wrap: anywhere; }
   .nav { padding: 8px 16px; }
   .nav nav { gap: 14px; }
   .nav nav a { font-size: 0.9rem; }
@@ -136,4 +141,5 @@ footer .made { margin-top: 14px; font-size: 0.88rem; }
 @media (max-width: 420px) {
   .nav nav a:not(.gh) { display: none; }
   .btn { width: 100%; text-align: center; }
+  .card { font-size: 0.78rem; padding: 12px; }
 }

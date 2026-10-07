@@ -5,6 +5,7 @@ import { useResponses } from "../state/responses";
 import { cancelActive } from "../state/run";
 import { useTabs } from "../state/tabs";
 import { CodeView } from "./CodeView";
+import { shortcutLabel } from "../lib/keys";
 
 const VIEWS = ["body", "raw", "headers", "timing", "request"] as const;
 type View = (typeof VIEWS)[number];
@@ -16,7 +17,7 @@ export function ResponsePanel() {
   const [view, setView] = useState<View>("body");
 
   if (!activeId || !run) {
-    return <section className="response placeholder">Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> or click ▶ to run a request</section>;
+    return <section className="response placeholder">Press <kbd>{shortcutLabel("Enter")}</kbd> or click ▶ to run a request</section>;
   }
   if (run.status === "running") {
     return (

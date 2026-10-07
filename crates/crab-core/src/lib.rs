@@ -3,6 +3,7 @@
 
 pub mod error;
 pub mod exec;
+pub mod files;
 pub mod model;
 pub mod parser;
 pub mod vars;

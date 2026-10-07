@@ -1,0 +1,37 @@
+name: Bug report
+description: Something in Crab doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: http
+    attributes:
+      label: Minimal .http snippet
+      description: The smallest request that reproduces the problem. Remove any secrets.
+      render: http
+  - type: input
+    id: version
+    attributes:
+      label: Crab version
+      description: Shown under Crab → About Crab on macOS.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [macOS (Apple Silicon), macOS (Intel), Windows 11, Windows 10, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, response details, the error message shown in the response panel.

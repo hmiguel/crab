@@ -2,23 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Crab — a desktop API client for .http files</title>
-  <meta name="description" content="Crab is a free, open-source desktop API client for plain .http and .rest files. Your requests stay as text files in your repos.">
-  <meta property="og:title" content="Crab — a desktop API client for .http files">
-  <meta property="og:description" content="Free and open source. Your API requests are just files.">
-  <meta property="og:image" content="assets/crab.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Crab: free, open-source desktop API client for .http files</title>
+  <meta name="description" content="Crab is a free, open-source desktop API client for plain .http and .rest files on macOS and Windows. Keep requests in Git, run them with one keystroke. No account, no cloud.">
+  <link rel="canonical" href="https://crab-ekq.pages.dev/">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="author" content="Hugo Conceicao">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#fcf3e3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1b1714" media="(prefers-color-scheme: dark)">
+
   <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
-  <link rel="icon" type="image/svg+xml" href="assets/crab.svg">
-  <link rel="apple-touch-icon" href="assets/crab.png">
-  <link rel="stylesheet" href="styles.css">
+  <meta property="og:site_name" content="Crab">
+  <meta property="og:url" content="https://crab-ekq.pages.dev/">
+  <meta property="og:title" content="Crab: your API requests are just files">
+  <meta property="og:description" content="Free, open-source desktop API client for plain .http and .rest files. macOS and Windows.">
+  <meta property="og:image" content="https://crab-ekq.pages.dev/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The Crab mascot next to the words: Your API requests are just files.">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Crab: your API requests are just files">
+  <meta name="twitter:description" content="Free, open-source desktop API client for plain .http and .rest files. macOS and Windows.">
+  <meta name="twitter:image" content="https://crab-ekq.pages.dev/assets/og.png">
+
+  <link rel="icon" type="image/svg+xml" href="/assets/crab.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="/assets/crab.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="alternate" type="text/plain" title="LLM summary" href="/llms.txt">
+  <link rel="alternate" type="text/markdown" title="Full documentation for LLMs" href="/llms-full.txt">
+  <link rel="stylesheet" href="/styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Crab",
+    "description": "Free, open-source desktop API client for plain .http and .rest files. Requests stay as text files in your Git repositories.",
+    "url": "https://crab-ekq.pages.dev/",
+    "image": "https://crab-ekq.pages.dev/assets/crab.png",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "macOS 11 or later, Windows 10 or later",
+    "softwareVersion": "0.1.0-beta.1",
+    "license": "https://github.com/hmiguel/crab#license",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+    "downloadUrl": "https://github.com/hmiguel/crab/releases",
+    "codeRepository": "https://github.com/hmiguel/crab",
+    "author": { "@type": "Person", "name": "Hugo Conceicao", "url": "https://github.com/hmiguel" },
+    "featureList": [
+      "Edit and run .http and .rest files (JetBrains HTTP Client and VS Code REST Client format)",
+      "Workspace spanning folders from many Git repositories",
+      "Run the request at the cursor with Cmd/Ctrl+Enter",
+      "Response viewer with JSON, raw, headers, timing and the resolved request",
+      "File variables and dynamic values like {{$guid}} and {{$timestamp}}",
+      "Session restore with unsaved drafts"
+    ]
+  }
+  </script>
 </head>
 <body>
+  <a class="skip" href="#main">Skip to content</a>
+
   <header class="nav">
-    <a class="brand" href="#top"><img src="assets/crab.svg" alt="" width="28" height="28"> Crab</a>
-    <nav>
+    <a class="brand" href="/" aria-label="Crab home"><img src="/assets/crab.svg" alt="" width="28" height="28"> Crab</a>
+    <nav aria-label="Main">
       <a href="#features">Features</a>
       <a href="#syntax">Syntax</a>
       <a href="#install">Install</a>
@@ -26,32 +76,32 @@
     </nav>
   </header>
 
-  <main id="top">
-    <section class="hero">
-      <img class="mascot" src="assets/crab.svg" alt="Crab mascot" width="168" height="168">
-      <h1>Your API requests are <span class="hl">just files</span>.</h1>
-      <p class="lede">Crab is a free, open-source desktop client for plain <code>.http</code> and <code>.rest</code> files. Keep requests in your repos, review them in pull requests and run them with one keystroke. No account and no cloud.</p>
+  <main id="main" tabindex="-1">
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="mascot" src="/assets/crab.svg" alt="" width="168" height="168">
+      <h1 id="hero-title">Your API requests are <span class="hl">just files</span>.</h1>
+      <p class="lede">Crab is a free, open-source desktop API client for plain <code>.http</code> and <code>.rest</code> files. Keep requests in your repos, review them in pull requests and run them with one keystroke. No account and no cloud.</p>
       <div class="cta">
-        <a id="download" class="btn primary" href="https://github.com/hmiguel/crab/releases/latest">Download Crab</a>
-        <a class="btn" href="https://github.com/hmiguel/crab">View source</a>
+        <a id="download" class="btn primary" href="https://github.com/hmiguel/crab/releases">Download Crab</a>
+        <a class="btn" href="https://github.com/hmiguel/crab">View source on GitHub</a>
       </div>
-      <p id="download-note" class="note">macOS (Apple Silicon &amp; Intel) · Windows · MIT OR Apache-2.0</p>
+      <p id="download-note" class="note" aria-live="polite">macOS (Apple Silicon &amp; Intel) · Windows · MIT OR Apache-2.0</p>
     </section>
 
-    <section class="shot" aria-label="Crab app preview">
-      <div class="window">
-        <div class="titlebar"><span></span><span></span><span></span><b>Crab</b></div>
-        <div class="app">
-          <aside class="side">
+    <section class="shot" aria-label="App preview">
+      <figure class="window" role="img" aria-label="Screenshot of Crab: a sidebar listing .http files and their requests, an editor showing two requests, and a response panel with a 201 Created JSON response.">
+        <div class="titlebar" aria-hidden="true"><span></span><span></span><span></span><b>Crab</b></div>
+        <div class="app" aria-hidden="true">
+          <div class="side">
             <div class="side-h">Workspace</div>
             <div class="row strong">▾ APIs</div>
             <div class="row muted">▾ shop-backend</div>
-            <div class="row file sel">▾ orders.http</div>
+            <div class="row file">▾ orders.http</div>
             <div class="row req"><i class="m get">GET</i> List orders</div>
-            <div class="row req"><i class="m post">POST</i> Create order</div>
+            <div class="row req sel"><i class="m post">POST</i> Create order</div>
             <div class="row file">▸ auth.http</div>
             <div class="row muted">▸ payments-api</div>
-          </aside>
+          </div>
           <div class="editor">
             <div class="tabs"><span class="tab on">orders.http</span><span class="tab">auth.http <i>●</i></span></div>
 <pre class="code"><span class="ln">1</span><span class="at">@host</span> = api.shop.test
@@ -78,25 +128,25 @@
 }</pre>
           </div>
         </div>
-      </div>
+      </figure>
     </section>
 
-    <section id="features" class="features">
-      <h2>Everything you need, nothing you don't</h2>
+    <section id="features" class="features" aria-labelledby="features-title">
+      <h2 id="features-title">Everything you need, nothing you don't</h2>
       <div class="grid">
-        <article><h3>📁 Files, not collections</h3><p>Requests live as <code>.http</code> files next to your code. Version them with Git and share them in pull requests. The same files work in JetBrains IDEs and the VS Code REST Client.</p></article>
-        <article><h3>🗂️ One workspace, many repos</h3><p>Group folders from any number of repositories into virtual folders. The sidebar shows every file and the requests inside it.</p></article>
-        <article><h3>⚡ Run at the cursor</h3><p>Press <kbd>⌘</kbd><kbd>Enter</kbd> or click ▶ to send the request you're editing, unsaved changes included. <kbd>Esc</kbd> cancels it.</p></article>
-        <article><h3>🔍 A response viewer that tells the truth</h3><p>Pretty, foldable JSON that never rounds big IDs, plus raw output, headers, timing, inline images and the exact request that was sent.</p></article>
-        <article><h3>🧩 Variables</h3><p>Use <code>@host = …</code> file variables, nested <code>{{references}}</code>, <code>{{$guid}}</code>, <code>{{$timestamp}}</code> and <code>{{$randomInt}}</code>. Missing or circular variables show a clear error.</p></article>
-        <article><h3>💾 Never lose work</h3><p>Tabs, cursors, layout and unsaved drafts come back after a restart. Line endings and BOMs are kept, so Windows files stay unchanged.</p></article>
+        <article><h3><span aria-hidden="true">📁</span> Files, not collections</h3><p>Requests live as <code>.http</code> files next to your code. Version them with Git and share them in pull requests. The same files work in JetBrains IDEs and the VS Code REST Client.</p></article>
+        <article><h3><span aria-hidden="true">🗂️</span> One workspace, many repos</h3><p>Group folders from any number of repositories into virtual folders. The sidebar shows every file and follows the request you're editing.</p></article>
+        <article><h3><span aria-hidden="true">⚡</span> Run at the cursor</h3><p>Press <kbd>⌘</kbd>&nbsp;<kbd>Enter</kbd> (<kbd>Ctrl</kbd>&nbsp;<kbd>Enter</kbd> on Windows) or click ▶ to send the request you're editing, unsaved changes included. <kbd>Esc</kbd> cancels it.</p></article>
+        <article><h3><span aria-hidden="true">🔍</span> A response viewer that tells the truth</h3><p>Pretty, foldable JSON that never rounds big IDs, plus raw output, headers, timing, inline images and the exact request that was sent.</p></article>
+        <article><h3><span aria-hidden="true">🧩</span> Variables</h3><p>Use <code>@host = …</code> file variables, nested <code>{{references}}</code>, <code>{{$guid}}</code>, <code>{{$timestamp}}</code> and <code>{{$randomInt}}</code>. Missing or circular variables show a clear error.</p></article>
+        <article><h3><span aria-hidden="true">💾</span> Never lose work</h3><p>Tabs, cursors, layout and unsaved drafts come back after a restart. Line endings and BOMs are kept, so Windows files stay unchanged.</p></article>
       </div>
     </section>
 
-    <section id="syntax" class="syntax">
-      <h2>Plain text you already know</h2>
+    <section id="syntax" class="syntax" aria-labelledby="syntax-title">
+      <h2 id="syntax-title">Plain text you already know</h2>
       <p>Crab uses the widely supported <code>.http</code> format. If you've used the JetBrains HTTP Client or VS Code REST Client, you already know it.</p>
-<pre class="code card"><span class="at">@host</span> = httpbin.org
+<pre class="code card" tabindex="0" aria-label="Example .http file"><span class="at">@host</span> = httpbin.org
 
 <span class="sep">### Get something</span>
 <span class="kw">GET</span> https://<span class="var">{{host}}</span>/get
@@ -109,30 +159,33 @@
 <span class="str">&lt; ./payload.json</span></pre>
     </section>
 
-    <section id="install" class="install">
-      <h2>Install</h2>
+    <section id="install" class="install" aria-labelledby="install-title">
+      <h2 id="install-title">Install</h2>
       <div class="grid two">
         <article>
           <h3>macOS</h3>
-          <p>Download the <code>.dmg</code>. It runs on Apple Silicon and Intel. Drag Crab to Applications.</p>
+          <p>Download the <code>.dmg</code>. It runs on Apple Silicon and Intel, macOS 11 or later. Drag Crab to Applications.</p>
           <p class="small">Crab isn't signed with a paid Apple certificate yet, so macOS asks once. Open Crab, then go to <b>System Settings → Privacy &amp; Security → Open Anyway</b>. Or run:</p>
-          <pre class="code inline">xattr -dr com.apple.quarantine /Applications/Crab.app</pre>
+          <pre class="code inline" tabindex="0" aria-label="Terminal command">xattr -dr com.apple.quarantine /Applications/Crab.app</pre>
         </article>
         <article>
           <h3>Windows</h3>
-          <p>Download the <code>.msi</code> or <code>-setup.exe</code> installer.</p>
+          <p>Download the <code>-setup.exe</code> installer (stable releases also include an <code>.msi</code>).</p>
           <p class="small">SmartScreen may warn about an unsigned app. Choose <b>More info → Run anyway</b>.</p>
         </article>
       </div>
-      <p class="center"><a class="btn primary" href="https://github.com/hmiguel/crab/releases/latest">All downloads</a></p>
+      <p class="center"><a class="btn primary" href="https://github.com/hmiguel/crab/releases">All downloads</a></p>
     </section>
   </main>
 
   <footer>
-    <p><img src="assets/crab.svg" alt="" width="20" height="20"> Crab is free and open source, licensed under MIT OR Apache-2.0.</p>
-    <p><a href="https://github.com/hmiguel/crab">GitHub</a> · <a href="https://github.com/hmiguel/crab/blob/main/CHANGELOG.md">Changelog</a> · <a href="https://github.com/hmiguel/crab/blob/main/ROADMAP.md">Roadmap</a> · <a href="https://github.com/hmiguel/crab/issues">Report an issue</a></p>
+    <p><img src="/assets/crab.svg" alt="" width="20" height="20"> Crab is free and open source, licensed under MIT OR Apache-2.0.</p>
+    <nav aria-label="Footer">
+      <p><a href="https://github.com/hmiguel/crab">GitHub</a> · <a href="https://github.com/hmiguel/crab/blob/main/CHANGELOG.md">Changelog</a> · <a href="https://github.com/hmiguel/crab/blob/main/ROADMAP.md">Roadmap</a> · <a href="https://github.com/hmiguel/crab/issues">Report an issue</a> · <a href="/llms.txt">llms.txt</a></p>
+    </nav>
+    <p class="made"><span>Made in Europe <span role="img" aria-label="European Union flag">🇪🇺</span></span> <span aria-hidden="true">·</span> <span>Built with <a href="https://claude.com/claude-code">Claude Code</a></span></p>
   </footer>
 
-  <script type="module" src="download.js"></script>
+  <script type="module" src="/download.js"></script>
 </body>
 </html>

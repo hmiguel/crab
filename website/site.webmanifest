@@ -1,0 +1,13 @@
+{
+  "name": "Crab",
+  "short_name": "Crab",
+  "description": "Free, open-source desktop API client for .http files",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#fcf3e3",
+  "theme_color": "#fcf3e3",
+  "icons": [
+    { "src": "/assets/crab.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/assets/crab.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

@@ -2,6 +2,7 @@
 //! Must not depend on Tauri — it is shared with the future CLI and MCP server.
 
 pub mod error;
+pub mod exec;
 pub mod model;
 pub mod parser;
 pub mod vars;

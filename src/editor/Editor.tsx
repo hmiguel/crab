@@ -6,6 +6,7 @@ import { bracketMatching } from "@codemirror/language";
 import { lintGutter, setDiagnostics, type Diagnostic as CmDiagnostic } from "@codemirror/lint";
 import { api } from "../api";
 import { debounce } from "../lib/debounce";
+import { useOutline } from "../state/outline";
 import { cancelActive, runAt } from "../state/run";
 import { useTabs, type Tab } from "../state/tabs";
 import { saveTab, showError } from "../ui/actions";
@@ -116,6 +117,8 @@ export function Editor() {
             });
           view.dispatch(setDiagnostics(view.state, diagnostics));
           view.dispatch({ effects: setRequestLines.of(parsed.requests.map((r) => r.requestLine)) });
+          const path = useTabs.getState().tabs.find((t) => t.id === tabId)?.path;
+          if (path) useOutline.getState().set(path, parsed.requests);
         })
         .catch(console.error);
     }, 150);

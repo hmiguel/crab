@@ -6,7 +6,7 @@
 [![Release](https://img.shields.io/github/v/release/hmiguel/crab?include_prereleases)](https://github.com/hmiguel/crab/releases)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](#license)
 
-An open-source, cross-platform desktop API client for plain `.http` / `.rest` files.
+An open-source, cross-platform desktop API client for plain `.http` / `.rest` files. **Website:** [crab-ekq.pages.dev](https://crab-ekq.pages.dev)
 
 Your requests stay as text files in your repositories. Crab doesn't need an account, a cloud sync or a proprietary collection format. It reads the same files as the JetBrains HTTP Client and the VS Code REST Client, so your team can keep using whatever editor they like.
 

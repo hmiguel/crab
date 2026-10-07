@@ -1,0 +1,29 @@
+# Crab
+
+> Crab is a free, open-source (MIT OR Apache-2.0) desktop API client for plain `.http` and `.rest` files, for macOS and Windows. Requests stay as text files in your Git repositories: no account, no cloud sync, no proprietary collection format. It reads the same format as the JetBrains HTTP Client and the VS Code REST Client.
+
+Key facts:
+
+- Platforms: macOS 11+ (universal: Apple Silicon and Intel, `.dmg`) and Windows 10+ (`-setup.exe`; stable releases also ship an `.msi`). Builds are unsigned; first launch needs System Settings → Privacy & Security → Open Anyway on macOS, or More info → Run anyway on Windows.
+- Built with Tauri v2 (Rust core, React + TypeScript UI, CodeMirror 6 editor).
+- Run the request under the cursor with Cmd/Ctrl+Enter; Esc cancels.
+- Supported syntax: `###` separators, `# @name`, comments, headers, bodies, `< ./file` bodies, multi-line query strings, `@name = value` file variables, `{{name}}` references, `{{$guid}}`, `{{$uuid}}`, `{{$timestamp}}`, `{{$randomInt min max}}`. JetBrains response handlers (`> {% %}`) are parsed but not run yet.
+- Not yet supported (on the roadmap): environments (`http-client.env.json`, `.env`), history, request chaining, scripts and assertions, a CLI and an MCP server, cURL/Postman import, WebSocket, SSE and gRPC.
+- Current version: 0.1.0-beta.1 (beta).
+
+## Docs
+
+- [Full documentation](https://crab-ekq.pages.dev/llms-full.txt): README and changelog in one Markdown file
+- [README](https://github.com/hmiguel/crab/blob/main/README.md): features, install, syntax, shortcuts, build from source
+- [Changelog](https://github.com/hmiguel/crab/blob/main/CHANGELOG.md)
+- [Roadmap](https://github.com/hmiguel/crab/blob/main/ROADMAP.md)
+
+## Download
+
+- [Releases](https://github.com/hmiguel/crab/releases): installers for macOS and Windows
+
+## Optional
+
+- [Source code](https://github.com/hmiguel/crab)
+- [Contributing](https://github.com/hmiguel/crab/blob/main/CONTRIBUTING.md)
+- [Security policy](https://github.com/hmiguel/crab/blob/main/SECURITY.md)

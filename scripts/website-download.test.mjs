@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { pickDownload } from "../website/download.js";
+import { pickDownload, pickRelease } from "../website/download.js";
 
 const assets = [
   { name: "Crab_0.1.0_universal.dmg", browser_download_url: "https://x/dmg" },
@@ -22,4 +22,14 @@ test("Windows visitors get the setup .exe", () => {
 test("other platforms, or a release without a matching asset, get null", () => {
   expect(pickDownload(assets, LINUX, "v0.1.0")).toBeNull();
   expect(pickDownload([], MAC, "v0.1.0")).toBeNull();
+});
+
+test("pickRelease prefers the newest stable release, then the newest pre-release, never a draft", () => {
+  const beta = { tag_name: "v0.2.0-beta.1", draft: false, prerelease: true };
+  const stable = { tag_name: "v0.1.0", draft: false, prerelease: false };
+  const draft = { tag_name: "v0.3.0", draft: true, prerelease: false };
+  expect(pickRelease([draft, beta, stable])).toBe(stable);
+  expect(pickRelease([draft, beta])).toBe(beta);
+  expect(pickRelease([draft])).toBeNull();
+  expect(pickRelease([])).toBeNull();
 });

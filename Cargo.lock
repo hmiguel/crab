@@ -455,7 +455,7 @@ dependencies = [
 
 [[package]]
 name = "crab"
-version = "0.1.0"
+version = "0.1.0-beta.1"
 dependencies = [
  "crab-core",
  "notify-debouncer-mini",
@@ -469,7 +469,7 @@ dependencies = [
 
 [[package]]
 name = "crab-core"
-version = "0.1.0"
+version = "0.1.0-beta.1"
 dependencies = [
  "base64 0.22.1",
  "rand",

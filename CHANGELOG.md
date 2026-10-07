@@ -5,9 +5,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-10-07
+## [0.1.0-beta.1] - 2026-10-07
 
-First public release.
+First public beta.
 
 ### Added
 - `.http` / `.rest` parser compatible with the JetBrains HTTP Client and VS Code REST Client formats:
@@ -21,8 +21,9 @@ First public release.
 - Response panel: pretty JSON (big integers preserved), raw, headers, timing, the resolved request, and inline images.
 - macOS menu: <kbd>⌘W</kbd> closes the tab and <kbd>⌘Q</kbd> saves the session before quitting.
 - Windows line endings and a UTF-8 BOM are preserved on save.
-- Light and dark themes following the OS.
-- Installers for macOS (universal `.dmg`) and Windows (`.msi`, NSIS `.exe`).
+- Sand and coral light and dark themes, following the OS.
+- The Workspace sidebar follows the editor: it reveals the open file and highlights the request under the cursor.
+- Installers for macOS (universal `.dmg`) and Windows (NSIS `-setup.exe`; the `.msi` comes with stable releases).
 
-[Unreleased]: https://github.com/hmiguel/crab/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/hmiguel/crab/releases/tag/v0.1.0
+[Unreleased]: https://github.com/hmiguel/crab/compare/v0.1.0-beta.1...HEAD
+[0.1.0-beta.1]: https://github.com/hmiguel/crab/releases/tag/v0.1.0-beta.1

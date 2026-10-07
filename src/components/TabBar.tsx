@@ -1,6 +1,7 @@
 import { useResponses } from "../state/responses";
 import { isDirty, useTabs } from "../state/tabs";
 import { closeTabWithPrompt } from "../ui/actions";
+import { shortcutLabel } from "../lib/keys";
 
 export function TabBar() {
   const tabs = useTabs((s) => s.tabs);
@@ -22,7 +23,7 @@ export function TabBar() {
           {runs[t.id]?.status === "running" && <span className="spinner small" />}
           <span className="tab-title">{t.title}</span>
           {isDirty(t) && <span className="tab-dirty" title="Unsaved changes">●</span>}
-          <button className="tab-close" title="Close (Ctrl+W)" onClick={(e) => { e.stopPropagation(); void closeTabWithPrompt(t.id); }}>×</button>
+          <button className="tab-close" title={`Close (${shortcutLabel("W")})`} onClick={(e) => { e.stopPropagation(); void closeTabWithPrompt(t.id); }}>×</button>
         </div>
       ))}
     </div>

@@ -1,8 +1,13 @@
 mod commands;
+#[cfg(target_os = "macos")]
+mod menu;
 mod state;
 
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(target_os = "macos")]
+    let builder = builder.menu(menu::build).on_menu_event(|app, event| menu::on_event(app, event.id().as_ref()));
+    builder
         .plugin(tauri_plugin_dialog::init())
         .manage(state::AppState::default())
         .invoke_handler(tauri::generate_handler![

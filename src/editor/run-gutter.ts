@@ -1,5 +1,6 @@
 import { RangeSet, StateEffect, StateField } from "@codemirror/state";
 import { gutter, GutterMarker } from "@codemirror/view";
+import { shortcutLabel } from "../lib/keys";
 
 /** 0-based request lines, as reported by the Rust parser. */
 export const setRequestLines = StateEffect.define<number[]>();
@@ -22,7 +23,7 @@ class RunMarker extends GutterMarker {
     const el = document.createElement("span");
     el.className = "cm-run-marker";
     el.textContent = "▶";
-    el.title = "Run request (Ctrl+Enter)";
+    el.title = `Run request (${shortcutLabel("Enter")})`;
     return el;
   }
 }

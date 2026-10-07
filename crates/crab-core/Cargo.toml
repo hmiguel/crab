@@ -6,5 +6,11 @@ license = "MIT OR Apache-2.0"
 description = "Parser, variable resolver and HTTP executor for .http files"
 
 [dependencies]
+rand = "0.8"
+regex = "1"
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "3"

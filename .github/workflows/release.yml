@@ -47,7 +47,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: ${{ matrix.tauri_args }}
+          # WiX (.msi) rejects pre-release versions like 0.2.0-beta.1, so betas ship the NSIS installer only.
+          args: ${{ matrix.tauri_args }} ${{ matrix.os == 'windows-latest' && contains(github.ref_name, '-') && '--bundles nsis' || '' }}
           tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
           releaseName: "Crab ${{ github.ref_name }}"
           releaseBody: |
@@ -55,8 +56,9 @@ jobs:
 
             **macOS** (Apple Silicon and Intel): download the `.dmg` and drag Crab to Applications. Builds are not signed. To allow the first launch, open Crab, then go to **System Settings → Privacy & Security → Open Anyway** (on macOS 14 and earlier, right-click the app and choose **Open**), or run `xattr -dr com.apple.quarantine /Applications/Crab.app`.
 
-            **Windows**: download the `.msi` or `-setup.exe`. SmartScreen will warn about the unsigned installer; choose **More info → Run anyway**.
+            **Windows**: download the `-setup.exe` (stable releases also include an `.msi`). SmartScreen will warn about the unsigned installer; choose **More info → Run anyway**.
           releaseDraft: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -66,3 +68,16 @@ jobs:
             ${{ matrix.bundle_dir }}/msi/*.msi
             ${{ matrix.bundle_dir }}/nsis/*.exe
           if-no-files-found: error
+
+  # Publish the draft once every platform has uploaded its installers.
+  publish:
+    needs: build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}

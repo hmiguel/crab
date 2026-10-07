@@ -45,6 +45,7 @@ kbd { font: 11px var(--mono); border: 1px solid var(--border); border-radius: 3p
 .row { display: flex; align-items: center; gap: 4px; padding: 2px 8px; cursor: pointer; white-space: nowrap; }
 .row:hover { background: var(--bg-hover); }
 .row.selected { background: var(--selection); }
+.row.file.current .label { font-weight: 600; }
 .row .label { overflow: hidden; text-overflow: ellipsis; flex: 1; }
 .row .actions { display: none; }
 .row:hover .actions { display: flex; }

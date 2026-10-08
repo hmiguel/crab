@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Editor } from "./editor/Editor";
+import { EnvAccent } from "./components/EnvAccent";
 import { ResponsePanel } from "./components/ResponsePanel";
 import { Sidebar } from "./components/Sidebar";
 import { StatusBar } from "./components/StatusBar";
@@ -51,6 +52,7 @@ export function App() {
 
   return (
     <div className="app">
+      <EnvAccent />
       <PanelGroup direction="horizontal" autoSaveId="crab-main" className="main">
         <Panel defaultSize={22} minSize={12}>
           <Sidebar />

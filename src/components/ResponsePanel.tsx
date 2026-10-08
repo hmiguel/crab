@@ -1,9 +1,11 @@
 import { useState } from "react";
-import type { ResponseData } from "../api";
+import { api, type ResolvedRequest, type ResponseData } from "../api";
 import { errorTitle, formatBytes, formatMs, formatRawResponse, formatRequest, prettyBody, statusClass } from "../lib/format";
+import { colorOf, useEnvironments } from "../state/environments";
 import { useResponses } from "../state/responses";
 import { cancelActive } from "../state/run";
 import { useTabs } from "../state/tabs";
+import { showError } from "../ui/actions";
 import { CodeView } from "./CodeView";
 import { shortcutLabel } from "../lib/keys";
 
@@ -58,9 +60,29 @@ export function ResponsePanel() {
         {view === "raw" && <CodeView text={formatRawResponse(r)} lang="text" />}
         {view === "headers" && <HeadersView r={r} />}
         {view === "timing" && <TimingView r={r} />}
-        {view === "request" && <CodeView text={formatRequest(r.request)} lang="http" />}
+        {view === "request" && <RequestView key={run.runId} runId={run.runId} r={r} />}
       </div>
     </section>
+  );
+}
+
+/** What was sent, with its environment; secrets stay masked until revealed (re-masked on a new run). */
+function RequestView({ runId, r }: { runId: string; r: ResponseData }) {
+  const colors = useEnvironments((s) => s.colors);
+  const [revealed, setRevealed] = useState<ResolvedRequest | null>(null);
+  const toggle = () => {
+    if (revealed) return setRevealed(null);
+    api.revealRequest(runId).then((req) => { if (req) setRevealed(req); }).catch(showError);
+  };
+  return (
+    <div className="request-view">
+      <div className="request-env">
+        Environment:{" "}
+        {r.env ? <><span className={`env-dot env-${colorOf({ colors }, r.env)}`} aria-hidden="true">●</span> {r.env}</> : "none"}
+        {r.hasSecrets && <button onClick={toggle}>{revealed ? "Hide secrets" : "Reveal secrets"}</button>}
+      </div>
+      <CodeView text={formatRequest(revealed ?? r.request)} lang="http" />
+    </div>
   );
 }
 

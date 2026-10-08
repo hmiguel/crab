@@ -46,6 +46,8 @@ section { max-width: 1100px; margin: 0 auto; padding: 72px max(24px, env(safe-ar
 .nav nav a { color: var(--muted); text-decoration: none; font-size: 0.95rem; padding: 10px 2px; }
 .nav nav a:hover { color: var(--ink); }
 .nav .gh { color: var(--ink); font-weight: 600; }
+.nav .sponsor { color: var(--coral-text); font-weight: 600; }
+.nav .sponsor:hover { color: var(--ink); }
 
 /* hero */
 .hero { text-align: center; padding-top: 64px; padding-bottom: 32px; }
@@ -139,7 +141,7 @@ footer .made { margin-top: 14px; font-size: 0.88rem; }
   h2 { font-size: 1.6rem; }
 }
 @media (max-width: 420px) {
-  .nav nav a:not(.gh) { display: none; }
+  .nav nav a:not(.gh):not(.sponsor) { display: none; }
   .btn { width: 100%; text-align: center; }
   .card { font-size: 0.78rem; padding: 12px; }
 }

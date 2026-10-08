@@ -61,9 +61,15 @@ pub fn reveal_request(state: State<'_, AppState>, run_id: String) -> Option<Reso
 }
 
 #[tauri::command]
-pub async fn list_environments(roots: Vec<String>) -> Vec<String> {
-    let names: BTreeSet<String> = roots.iter().flat_map(|r| env::find_env_names(Path::new(r))).collect();
-    names.into_iter().collect()
+pub async fn list_environments(roots: Vec<String>) -> env::EnvScan {
+    let mut names = BTreeSet::new();
+    let mut warnings = Vec::new();
+    for root in &roots {
+        let scan = env::scan_env_files(Path::new(root));
+        names.extend(scan.names);
+        warnings.extend(scan.warnings);
+    }
+    env::EnvScan { names: names.into_iter().collect(), warnings }
 }
 
 #[tauri::command]

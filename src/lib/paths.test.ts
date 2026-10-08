@@ -20,10 +20,12 @@ test("basename, isUnder, isHttpFile", () => {
   expect(isHttpFile("x/a.json")).toBe(false);
 });
 
-test("isEnvFile matches the three env file names on any platform", () => {
+test("isEnvFile matches every env file name on any platform", () => {
   expect(isEnvFile("/r/http-client.env.json")).toBe(true);
   expect(isEnvFile("C:\\r\\http-client.private.env.json")).toBe(true);
   expect(isEnvFile("/r/.env")).toBe(true);
+  expect(isEnvFile("/r/crab.env.json")).toBe(true);
+  expect(isEnvFile("C:\\r\\crab.private.env.json")).toBe(true);
   expect(isEnvFile("/r/.env.local")).toBe(false);
   expect(isEnvFile("/r/package.json")).toBe(false);
 });

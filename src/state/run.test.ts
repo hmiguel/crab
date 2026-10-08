@@ -8,7 +8,7 @@ vi.mock("../api", async (importOriginal) => ({
     cancelRequest: vi.fn().mockResolvedValue(undefined),
     parseText: vi.fn(),
     saveState: vi.fn().mockResolvedValue(undefined),
-    listEnvironments: vi.fn().mockResolvedValue([]),
+    listEnvironments: vi.fn().mockResolvedValue({ names: [], warnings: [] }),
   },
 }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ ask: vi.fn() }));

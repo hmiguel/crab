@@ -22,7 +22,7 @@ Your requests stay as text files in your repositories. Crab doesn't need an acco
   - **Raw**, **Headers**, **Timing** (total, time to first byte, size).
   - **Request:** exactly what was sent, with every variable resolved.
 - **Variables:** `@name = value` file variables, nested `{{references}}`, and the dynamic values `{{$guid}}`, `{{$uuid}}`, `{{$timestamp}}` and `{{$randomInt min max}}`.
-- **Environments:** `http-client.env.json`, `http-client.private.env.json` and `.env`. Pick one in the status bar, give it a colour, and Crab asks before sending changes to red (production) environments. Private values are masked.
+- **Environments:** `crab.env.json` (or JetBrains' `http-client.env.json`), a private file for secrets, and `.env`. Pick one in the status bar, give it a colour, and Crab asks before sending changes to red (production) environments. Private values are masked.
 - **Session restore:** open tabs, cursor positions, layout and **unsaved drafts** come back after a restart.
 - **Files are the source of truth**
   - Crab writes a file only when you press <kbd>⌘</kbd><kbd>S</kbd>.
@@ -83,7 +83,7 @@ Content-Type: application/json
 
 ## Environments
 
-Put an `http-client.env.json` next to your `.http` files, or in any folder above them inside the workspace folder:
+Put a `crab.env.json` next to your `.http` files, or in any folder above them inside the workspace folder:
 
 ```json
 {
@@ -93,7 +93,9 @@ Put an `http-client.env.json` next to your `.http` files, or in any folder above
 }
 ```
 
-Keep secrets in `http-client.private.env.json`, which uses the same shape, and add that file to `.gitignore`. Values from the private file are shown as `••••••` in the Request tab, and **Reveal secrets** shows them.
+Keep secrets in `crab.private.env.json`, which uses the same shape. Add `*.private.env.json` to `.gitignore`.
+
+Crab also reads the JetBrains HTTP Client names, `http-client.env.json` and `http-client.private.env.json`, so teammates on IntelliJ or WebStorm can use the same files. The nearest folder with either name wins. If one folder has both names, Crab uses the `crab.` file and shows a warning in the environment menu. Values from the private file are shown as `••••••` in the Request tab, and **Reveal secrets** shows them.
 
 Choose the environment in the status bar. `{{name}}` is looked up in this order:
 1. `@name` file variables

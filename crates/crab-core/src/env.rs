@@ -1,9 +1,10 @@
-//! Environments: `http-client.env.json`, `http-client.private.env.json` and `.env`, found in the `.http`
-//! file's folder or the nearest folder above it, up to the workspace root.
+//! Environments: `crab.env.json` / `http-client.env.json`, their `.private.env.json` counterparts and
+//! `.env`, found in the `.http` file's folder or the nearest folder above it, up to the workspace root.
 
 use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
+use serde::Serialize;
 use serde_json::Value;
 use walkdir::WalkDir;
 
@@ -11,8 +12,9 @@ use crate::error::{CrabError, ErrorKind};
 use crate::files::{read_text, MAX_DEPTH, SKIP_DIRS};
 use crate::vars::{EnvProvider, EnvValue};
 
-pub const PUBLIC_FILE: &str = "http-client.env.json";
-pub const PRIVATE_FILE: &str = "http-client.private.env.json";
+/// Accepted names, preferred first: Crab's short name, then the JetBrains HTTP Client name.
+pub const PUBLIC_FILES: [&str; 2] = ["crab.env.json", "http-client.env.json"];
+pub const PRIVATE_FILES: [&str; 2] = ["crab.private.env.json", "http-client.private.env.json"];
 pub const DOTENV_FILE: &str = ".env";
 const SHARED: &str = "$shared";
 
@@ -30,9 +32,9 @@ impl EnvFiles {
     /// Load the nearest env files for `http_file`, never looking above `root`.
     pub fn discover(http_file: &Path, root: Option<&Path>) -> Result<Self, CrabError> {
         let dirs = search_dirs(http_file, root);
-        let public = nearest(&dirs, PUBLIC_FILE).map(|p| load_env_json(&p)).transpose()?;
-        let private = nearest(&dirs, PRIVATE_FILE).map(|p| load_env_json(&p)).transpose()?;
-        let dotenv = nearest(&dirs, DOTENV_FILE).map(|p| read_text(&p).map(|t| parse_dotenv(&t))).transpose()?;
+        let public = nearest(&dirs, &PUBLIC_FILES).map(|p| load_env_json(&p)).transpose()?;
+        let private = nearest(&dirs, &PRIVATE_FILES).map(|p| load_env_json(&p)).transpose()?;
+        let dotenv = nearest(&dirs, &[DOTENV_FILE]).map(|p| read_text(&p).map(|t| parse_dotenv(&t))).transpose()?;
         Ok(Self { public: public.unwrap_or_default(), private: private.unwrap_or_default(), dotenv: dotenv.unwrap_or_default() })
     }
 
@@ -52,8 +54,9 @@ fn search_dirs(http_file: &Path, root: Option<&Path>) -> Vec<PathBuf> {
     }
 }
 
-fn nearest(dirs: &[PathBuf], name: &str) -> Option<PathBuf> {
-    dirs.iter().map(|d| d.join(name)).find(|p| p.is_file())
+/// The first existing file of `names` (in preference order) in the nearest folder that has one.
+fn nearest(dirs: &[PathBuf], names: &[&str]) -> Option<PathBuf> {
+    dirs.iter().find_map(|d| names.iter().map(|n| d.join(n)).find(|p| p.is_file()))
 }
 
 /// Parse an env JSON file. Values that are not strings, numbers or booleans (for example JetBrains
@@ -118,22 +121,40 @@ fn dotenv_value(v: &str) -> String {
     }
 }
 
-/// Environment names from every env JSON file under `root`. Unreadable files are skipped; they report
-/// their error when a request runs.
-pub fn find_env_names(root: &Path) -> Vec<String> {
-    let mut names = BTreeSet::new();
-    let entries = WalkDir::new(root)
+/// What a workspace root's env files offer: environment names, and warnings about ignored files.
+#[derive(Debug, Default, PartialEq, Eq, Serialize)]
+pub struct EnvScan {
+    pub names: Vec<String>,
+    pub warnings: Vec<String>,
+}
+
+/// Scan every folder under `root` for env JSON files. In a folder with both naming styles only the
+/// preferred file counts, as in `EnvFiles::discover`, and the other is reported. Unreadable files are
+/// skipped; they report their error when a request runs.
+pub fn scan_env_files(root: &Path) -> EnvScan {
+    let dirs: BTreeSet<PathBuf> = WalkDir::new(root)
         .max_depth(MAX_DEPTH)
         .into_iter()
         .filter_entry(|e| e.depth() == 0 || !(e.file_type().is_dir() && SKIP_DIRS.contains(&e.file_name().to_string_lossy().as_ref())))
         .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_file() && (e.file_name() == PUBLIC_FILE || e.file_name() == PRIVATE_FILE));
-    for entry in entries {
-        if let Ok(envs) = load_env_json(entry.path()) {
-            names.extend(envs.into_keys().filter(|n| n != SHARED));
+        .filter(|e| e.file_type().is_dir())
+        .map(|e| e.into_path())
+        .collect();
+    let mut names = BTreeSet::new();
+    let mut warnings = Vec::new();
+    for dir in &dirs {
+        for group in [&PUBLIC_FILES, &PRIVATE_FILES] {
+            let present: Vec<&str> = group.iter().copied().filter(|n| dir.join(n).is_file()).collect();
+            let Some(used) = present.first() else { continue };
+            if let [_, ignored, ..] = present.as_slice() {
+                warnings.push(format!("Both {used} and {ignored} in {}; using {used}", dir.display()));
+            }
+            if let Ok(envs) = load_env_json(&dir.join(used)) {
+                names.extend(envs.into_keys().filter(|n| n != SHARED));
+            }
         }
     }
-    names.into_iter().collect()
+    EnvScan { names: names.into_iter().collect(), warnings }
 }
 
 /// The selected environment over the discovered files.

@@ -3,6 +3,7 @@ import { api, toCrabError, type RequestBlock } from "../api";
 import { requestIndexAt } from "../lib/outline";
 import { isUnder } from "../lib/paths";
 import { isDanger, useEnvironments } from "./environments";
+import { useHistory } from "./history";
 import { useResponses } from "./responses";
 import { useTabs, type Tab } from "./tabs";
 import { useWorkspace } from "./workspace";
@@ -48,6 +49,8 @@ export async function runAt(tabId: string, line: number): Promise<void> {
   } catch (e) {
     useResponses.getState().fail(tabId, runId, toCrabError(e));
   }
+  // History is best effort: a failing refresh must never surface as a run error.
+  useHistory.getState().refresh().catch(() => undefined);
 }
 
 export function cancelActive(tabId: string): void {

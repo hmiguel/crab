@@ -38,7 +38,8 @@ Crab can't switch between dev, staging and prod today. Requests only see `@var` 
   4. `public["$shared"][x]`
   5. `.env` `x`
 - With no environment selected, steps 1–2 are skipped and `$shared` and `.env` still apply.
-- JSON strings are used as-is. Numbers and booleans become their JSON text. `null`, objects and arrays produce an `env` error naming the file and key.
+- JSON strings are used as-is. Numbers and booleans become their JSON text. `null`, objects and arrays are **skipped**, so JetBrains-only settings such as `"Security": {"Auth": …}` don't break the file. Referencing a skipped key gives the normal `unresolvedVars` error.
+- A UTF-8 BOM at the start of an env file is ignored.
 - `{{$dotenv NAME}}` reads `.env` only. If the name is missing, it produces `unresolvedVars`.
 
 ### `.env` parser
@@ -60,7 +61,7 @@ Crab can't switch between dev, staging and prod today. Requests only see `@var` 
 - Discovery: the nearest file wins, the walk stops at the root, the three files are found independently, and a file outside the root only checks its own folder.
 - Lookup order, all five steps.
 - `$shared` applies with no environment selected.
-- Value conversion, and the error for objects and arrays.
+- Value conversion, skipped objects and arrays, and a file with a BOM.
 - `.env` parsing: comments, `export`, quotes, escapes, inline comments, malformed lines.
 - `$dotenv`.
 - `masked()`: secrets in the URL, headers and body. Short secrets stay visible. A `$guid` is the same in both copies.
@@ -74,7 +75,7 @@ Crab can't switch between dev, staging and prod today. Requests only see `@var` 
   - Builds `FileEnv` from `EnvFiles::discover(path, root)`. With no `path` (an unsaved file), it uses `NoEnv`.
   - Env files are read fresh on every run, so there's no cache to clear.
   - `runAt` passes `root` as the workspace root that contains the file (`allRoots().find((r) => isUnder(path, r))`), and passes `null` when there isn't one.
-- `ResponseData.request` is now the **masked** request, plus `has_secrets: bool`.
+- `ResponseData.request` is now the **masked** request. `ResponseData` also gains `has_secrets: bool` and `env: Option<String>`, the environment the run used, so the Request tab shows the right one even after the selection changes.
 - `AppState` keeps the real resolved request for the last 20 runs, in memory only. `reveal_request(run_id) -> Option<ResolvedRequest>` returns it.
 
 ### `src/state/environments.ts` (new)
@@ -109,7 +110,7 @@ In `runAt` (`src/state/run.ts`), before calling the backend:
   - `No environment`,
   - a separator, then `Colour of <selected>`, a row of five swatches (none, green, blue, amber, red), shown only when an environment is selected,
   - a separator, then a check box: `Confirm before sending changes to red environments`.
-- With an empty list, the menu says `No http-client.env.json found in the workspace` and links to the README's Environments section.
+- With an empty list, the menu says `No http-client.env.json found in the workspace. See "Environments" in the README.` The app has no plugin for opening links in the browser, so this is plain text, not a link.
 
 ### Making the environment visible (`src/components/EnvAccent.tsx`, new)
 - Sets `--env-color` on `.app`, using `transparent` for `none` or no environment.
@@ -118,7 +119,7 @@ In `runAt` (`src/state/run.ts`), before calling the backend:
 - The ▶ run markers (`src/editor/run-gutter.ts` styles) use `var(--env-color, var(--accent))`.
 
 ### Request tab (`src/components/ResponsePanel.tsx`)
-- A header line: `Environment: ● <name>`.
+- A header line: `Environment: ● <name>`, taken from `ResponseData.env`.
 - When `hasSecrets` is true, a `Reveal secrets` button calls `reveal_request`. The view goes back to masked when the tab or the response changes.
 
 ### Colours (`src/styles.css`)

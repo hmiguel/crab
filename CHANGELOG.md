@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
-- Quick open (<kbd>⌘P</kbd> / <kbd>Ctrl</kbd><kbd>P</kbd>, or ⌕ in the sidebar): fuzzy-search every file and request in the workspace by name, URL or path, and jump straight to it.
+- Quick open (<kbd>⌘P</kbd> / <kbd>Ctrl</kbd><kbd>P</kbd>, or ⌕ in the sidebar): fuzzy-search every file and request in the workspace by name, URL or path, or find text inside headers and bodies, and jump straight to it.
 
 ## [0.1.0-beta.1] - 2026-10-07
 

@@ -5,7 +5,7 @@ import { useWorkspace } from "./workspace";
 
 export type SearchItem =
   | { kind: "file"; path: string; display: string }
-  | { kind: "request"; path: string; display: string; method: string; label: string; url: string; requestLine: number };
+  | { kind: "request"; path: string; display: string; method: string; label: string; url: string; requestLine: number; content: string };
 
 type SearchIndexState = {
   /** normPath -> requests parsed from disk; null when the file couldn't be read. */
@@ -17,6 +17,14 @@ type SearchIndexState = {
 };
 
 const CONCURRENCY = 8;
+const CONTENT_CAP = 4096;
+
+/** Headers as `Name: value` lines plus the inline body; `< file` bodies are never read. */
+function requestContent(r: RequestBlock): string {
+  const lines = r.headers.map((h) => `${h.name}: ${h.value}`);
+  if (r.body?.kind === "inline") lines.push(r.body.value);
+  return lines.join("\n").slice(0, CONTENT_CAP);
+}
 
 type WorkspaceView = { folders: { roots: string[] }[]; files: Record<string, string[]> };
 
@@ -40,6 +48,7 @@ export function searchItems(
       { kind: "file", path, display } as SearchItem,
       ...requests.map((r): SearchItem => ({
         kind: "request", path, display, method: r.method, label: r.name ?? r.url, url: r.url, requestLine: r.requestLine,
+        content: requestContent(r),
       })),
     ];
   });

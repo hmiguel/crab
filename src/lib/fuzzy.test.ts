@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { fuzzyScore, rankItems } from "./fuzzy";
+import { containsScore, fuzzyScore, rankItems, snippet } from "./fuzzy";
 
 test("matches a case-insensitive subsequence and rejects the rest", () => {
   expect(fuzzyScore("usr", "Users.http")).not.toBeNull();
@@ -32,7 +32,34 @@ test("rankItems scores by best field, drops misses, breaks ties by shorter label
     { label: "users", file: "x.http" },
     { label: "nothing", file: "nope.http" },
   ];
-  const ranked = rankItems("users", items, (i) => [i.label, i.file], (i) => i.label);
-  expect(ranked.map((i) => i.label)).toEqual(["users", "List users"]);
-  expect(rankItems("", items, (i) => [i.label], (i) => i.label, 2)).toHaveLength(2);
+  const opts = { fields: (i: (typeof items)[number]) => [i.label, i.file], label: (i: (typeof items)[number]) => i.label };
+  expect(rankItems("users", items, opts).map((r) => r.item.label)).toEqual(["users", "List users"]);
+  expect(rankItems("", items, { ...opts, limit: 2 })).toHaveLength(2);
+});
+
+test("containsScore is a case-insensitive substring match for 3+ characters", () => {
+  expect(containsScore("auth", "Authorization: Bearer x")).not.toBeNull();
+  expect(containsScore("ath", "Authorization")).toBeNull();
+  expect(containsScore("ab", "abc")).toBeNull();
+});
+
+test("content-only matches rank below every name match and are flagged", () => {
+  const items = [
+    { label: "Get order", content: "X-Customer-Id: 42" },
+    { label: "Customer list", content: "" },
+  ];
+  const ranked = rankItems("customer", items, { fields: (i) => [i.label], label: (i) => i.label, content: (i) => i.content });
+  expect(ranked).toEqual([
+    { item: items[1], viaContent: false },
+    { item: items[0], viaContent: true },
+  ]);
+});
+
+test("snippet returns the matching line, trimmed around the match", () => {
+  expect(snippet("token", "Accept: */*\nAuthorization: Bearer {{token}}")).toBe("Authorization: Bearer {{token}}");
+  const long = "x".repeat(100) + "needle" + "y".repeat(100);
+  const s = snippet("needle", long);
+  expect(s).toContain("needle");
+  expect(s.length).toBeLessThanOrEqual(82);
+  expect(s.startsWith("…") && s.endsWith("…")).toBe(true);
 });

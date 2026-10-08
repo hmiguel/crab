@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { create } from "zustand";
-import { rankItems } from "../lib/fuzzy";
+import { rankItems, snippet, type Ranked } from "../lib/fuzzy";
 import { useOutline } from "../state/outline";
 import { searchItems, useSearchIndex, type SearchItem } from "../state/search-index";
 import { useTabs } from "../state/tabs";
@@ -13,6 +13,7 @@ const close = () => useQuickOpen.setState({ open: false });
 
 const itemLabel = (i: SearchItem) => (i.kind === "file" ? i.display : i.label);
 const itemFields = (i: SearchItem) => (i.kind === "file" ? [i.display] : [i.label, i.url, `${i.method} ${i.label}`, i.display]);
+const itemContent = (i: SearchItem) => (i.kind === "request" ? i.content : "");
 
 /** ⌘P palette: fuzzy-find files and requests across the whole workspace. */
 export function QuickOpen() {
@@ -33,11 +34,12 @@ function Palette() {
   useEffect(() => { void useSearchIndex.getState().ensure(); }, [files]);
 
   const items = useMemo(() => searchItems({ folders, files }, parsed, outline), [folders, files, parsed, outline]);
+  const q = query.trim();
   const results = useMemo(
-    () => (query.trim() === ""
-      ? items.filter((i) => i.kind === "file").slice(0, 50)
-      : rankItems(query.trim(), items, itemFields, itemLabel)),
-    [items, query],
+    (): Ranked<SearchItem>[] => (q === ""
+      ? items.filter((i) => i.kind === "file").slice(0, 50).map((item) => ({ item, viaContent: false }))
+      : rankItems(q, items, { fields: itemFields, label: itemLabel, content: itemContent })),
+    [items, q],
   );
 
   useEffect(() => setSelected(0), [query]);
@@ -53,7 +55,7 @@ function Palette() {
     const n = results.length;
     if (e.key === "ArrowDown" && n) setSelected((s) => (s + 1) % n);
     else if (e.key === "ArrowUp" && n) setSelected((s) => (s - 1 + n) % n);
-    else if (e.key === "Enter") choose(results[selected]);
+    else if (e.key === "Enter") choose(results[selected]?.item);
     else if (e.key === "Escape") close();
     else return;
     e.preventDefault();
@@ -72,13 +74,13 @@ function Palette() {
           onKeyDown={onKeyDown}
         />
         <ul className="quick-open-results" role="listbox">
-          {results.map((item, i) => (
+          {results.map(({ item, viaContent }, i) => (
             <li
               key={item.kind === "file" ? item.path : `${item.path}:${item.requestLine}`}
               ref={i === selected ? selectedRow : undefined}
               role="option"
               aria-selected={i === selected}
-              className={`row${i === selected ? " selected" : ""}`}
+              className={`row${i === selected ? " selected" : ""}${viaContent ? " with-snippet" : ""}`}
               onMouseMove={() => setSelected(i)}
               onClick={() => choose(item)}
             >
@@ -87,6 +89,7 @@ function Palette() {
                   <span className={`method m-${item.method.toLowerCase()}`}>{item.method}</span>
                   <span className="label">{item.label}</span>
                   <span className="where">{item.display}</span>
+                  {viaContent && <span className="snippet">{snippet(q, item.content)}</span>}
                 </>
               ) : (
                 <>

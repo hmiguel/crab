@@ -32,11 +32,20 @@ export type ResponseData = {
   request: ResolvedRequest;
   hasSecrets: boolean;
   env: string | null;
+  historyId: number | null;
 };
 export type ErrorKind = "parse" | "unresolvedVars" | "network" | "timeout" | "cancelled" | "io" | "env";
 export type CrabError = { kind: ErrorKind; message: string };
 /** Environment names in the workspace, and warnings about env files that are ignored. */
 export type EnvScan = { names: string[]; warnings: string[] };
+export type RunSummary = {
+  id: number; atMs: number; path: string | null; requestKey: string; requestLine: number; name: string | null;
+  method: string; url: string; env: string | null; status: number | null; errorKind: ErrorKind | null;
+  errorMessage: string | null; totalMs: number | null; sizeBytes: number | null;
+};
+export type PastRun = { summary: RunSummary; request: ResolvedRequest; response: ResponseData | null };
+export type ListQuery = { query?: string | null; path?: string | null; key?: string | null; before?: number | null; limit: number };
+export type HistoryStatus = { enabled: boolean; error: string | null };
 export type StateName = "workspace" | "session";
 
 export const api = {
@@ -52,6 +61,10 @@ export const api = {
   watchRoots: (roots: string[]) => invoke<void>("watch_roots", { roots }),
   listEnvironments: (roots: string[]) => invoke<EnvScan>("list_environments", { roots }),
   revealRequest: (runId: string) => invoke<ResolvedRequest | null>("reveal_request", { runId }),
+  historyList: (query: ListQuery) => invoke<RunSummary[]>("history_list", { query }),
+  historyGet: (id: number) => invoke<PastRun | null>("history_get", { id }),
+  historyClear: () => invoke<void>("history_clear"),
+  historyStatus: () => invoke<HistoryStatus>("history_status"),
 };
 
 export function toCrabError(e: unknown): CrabError {

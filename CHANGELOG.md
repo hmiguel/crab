@@ -6,6 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- Request history: every sent request is saved with its response (last 1,000 runs) and is searchable from the History tab and ⌘P. The response panel lists earlier runs of the current request, and past runs open read-only. Requests are stored masked.
 - Quick open (<kbd>⌘P</kbd> / <kbd>Ctrl</kbd><kbd>P</kbd>, or ⌕ in the sidebar): fuzzy-search every file and request in the workspace by name, URL or path, or find text inside headers and bodies, and jump straight to it.
 - Environments from `crab.env.json` / `crab.private.env.json` (the JetBrains `http-client.env.json` names work too) and `.env`, picked in the status bar. Each environment can have a colour, red environments ask before sending changes, and private values are masked in the Request tab.
 

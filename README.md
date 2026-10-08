@@ -24,6 +24,7 @@ Your requests stay as text files in your repositories. Crab doesn't need an acco
   - **Request:** exactly what was sent, with every variable resolved.
 - **Variables:** `@name = value` file variables, nested `{{references}}`, and the dynamic values `{{$guid}}`, `{{$uuid}}`, `{{$timestamp}}` and `{{$randomInt min max}}`.
 - **Environments:** `crab.env.json` (or JetBrains' `http-client.env.json`), a private file for secrets, and `.env`. Pick one in the status bar, give it a colour, and Crab asks before sending changes to red (production) environments. Private values are masked.
+- **History:** every request you send is saved with its response. Search past runs (including response bodies) in the History tab or <kbd>⌘</kbd><kbd>P</kbd>, see earlier runs of the request under the cursor, and open any of them read-only.
 - **Session restore:** open tabs, cursor positions, layout and **unsaved drafts** come back after a restart.
 - **Files are the source of truth**
   - Crab writes a file only when you press <kbd>⌘</kbd><kbd>S</kbd>.
@@ -109,6 +110,17 @@ Choose the environment in the status bar. `{{name}}` is looked up in this order:
 
 Environments named like `prod`, `production` or `live` are red by default. You can give any environment a colour in the status bar menu. With a red environment selected, Crab asks before sending a POST, PUT, PATCH or DELETE. You can turn this off in the same menu.
 
+## History
+
+Every request Crab sends is saved locally with its response: the last 1,000 runs, with bodies up to 1 MB each. Runs that never left your machine (a parse error or a missing variable) aren't saved.
+
+- **History tab** (sidebar): runs grouped by day. The search box matches request names, URLs and response bodies. Click a run to open it read-only in its file.
+- **History (n)** (response panel): earlier runs of the request under the cursor. **Latest** goes back to the live result.
+- **⌘P**: type 3 or more characters and matching past runs appear under *Past runs*.
+- **Clear history** at the bottom of the History tab deletes everything.
+
+Requests are saved **masked**: values from `crab.private.env.json` show as `••••••`. Responses are saved **as received**, so a token that a server sends back stays on disk until you clear history.
+
 ## `.http` syntax supported
 
 | Syntax | Meaning |
@@ -139,7 +151,7 @@ Middle-click a tab to close it. The **Response: right/bottom** button in the sta
 
 ## Where Crab keeps its data
 
-Crab only stores its own state: your workspace folders and the open-tab session, including drafts. Request files are never copied.
+Crab only stores its own state: your workspace folders, the open-tab session (including drafts) and the request history in `history.db`. Request files are never copied.
 
 - macOS: `~/Library/Application Support/dev.crabhttp.desktop/`
 - Windows: `%APPDATA%\dev.crabhttp.desktop\`
@@ -180,7 +192,6 @@ docs/               Design spec and implementation plan
 ## Roadmap
 
 Planned next:
-- Searchable request history.
 - A `crab` CLI and an MCP server.
 - Request chaining, response handler scripts and assertions.
 - Import from cURL, Postman and Insomnia.

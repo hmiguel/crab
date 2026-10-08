@@ -23,6 +23,7 @@ test("toSession stores drafts only for dirty tabs", () => {
   expect(toSession(tabs, clean, "bottom")).toEqual({
     version: 1,
     dock: "bottom",
+    sidebarTab: "workspace",
     activePath: "/a.http",
     tabs: [
       { path: "/a.http", draft: null, cursor: 1, scrollTop: 5 },
@@ -67,4 +68,8 @@ test("autosave is debounced to 1 s and flush saves immediately", async () => {
   expect(api.saveState).toHaveBeenCalledTimes(2);
   autosave.stop();
   vi.useRealTimers();
+});
+
+test("toSession and restore keep the sidebar tab", () => {
+  expect(toSession([], null, "right", "history")).toMatchObject({ sidebarTab: "history" });
 });

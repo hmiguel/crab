@@ -3,6 +3,7 @@ use std::sync::Mutex;
 
 use notify_debouncer_mini::notify::RecommendedWatcher;
 use notify_debouncer_mini::Debouncer;
+use crab_core::history::History;
 use crab_core::model::ResolvedRequest;
 use tokio_util::sync::CancellationToken;
 
@@ -14,6 +15,10 @@ pub struct AppState {
     pub watcher: Mutex<Option<Debouncer<RecommendedWatcher>>>,
     /// Unmasked requests of the latest runs that had secrets, for "Reveal secrets". Memory only.
     pub revealed: Mutex<VecDeque<(String, ResolvedRequest)>>,
+    /// Run history; `None` when the database could not be opened (see `history_error`).
+    pub history: Mutex<Option<History>>,
+    /// Why history is off, or the latest failed write.
+    pub history_error: Mutex<Option<String>>,
 }
 
 const REVEAL_CAP: usize = 20;

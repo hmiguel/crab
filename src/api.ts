@@ -30,14 +30,16 @@ export type ResponseData = {
   sizeBytes: number;
   timing: Timing;
   request: ResolvedRequest;
+  hasSecrets: boolean;
+  env: string | null;
 };
-export type ErrorKind = "parse" | "unresolvedVars" | "network" | "timeout" | "cancelled" | "io";
+export type ErrorKind = "parse" | "unresolvedVars" | "network" | "timeout" | "cancelled" | "io" | "env";
 export type CrabError = { kind: ErrorKind; message: string };
 export type StateName = "workspace" | "session";
 
 export const api = {
   parseText: (text: string) => invoke<ParsedFile>("parse_text", { text }),
-  runRequest: (args: { runId: string; path: string | null; text: string; line: number }) =>
+  runRequest: (args: { runId: string; path: string | null; text: string; line: number; env: string | null; root: string | null }) =>
     invoke<ResponseData>("run_request", args),
   cancelRequest: (runId: string) => invoke<void>("cancel_request", { runId }),
   readTextFile: (path: string) => invoke<string>("read_text_file", { path }),
@@ -46,6 +48,8 @@ export const api = {
   loadState: <T>(name: StateName) => invoke<T | null>("load_state", { name }),
   saveState: (name: StateName, value: unknown) => invoke<void>("save_state", { name, value }),
   watchRoots: (roots: string[]) => invoke<void>("watch_roots", { roots }),
+  listEnvironments: (roots: string[]) => invoke<string[]>("list_environments", { roots }),
+  revealRequest: (runId: string) => invoke<ResolvedRequest | null>("reveal_request", { runId }),
 };
 
 export function toCrabError(e: unknown): CrabError {

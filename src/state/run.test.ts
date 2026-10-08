@@ -23,6 +23,8 @@ const fakeResponse = (status: number): ResponseData => ({
   sizeBytes: 0,
   timing: { totalMs: 1, ttfbMs: 1 },
   request: { method: "GET", url: "https://x.test", headers: [], body: null },
+  hasSecrets: false,
+  env: null,
 });
 
 let tabId: string;
@@ -36,7 +38,7 @@ beforeEach(() => {
 test("runAt sends the buffer text and stores the response", async () => {
   vi.mocked(api.runRequest).mockResolvedValueOnce(fakeResponse(200));
   await runAt(tabId, 0);
-  expect(api.runRequest).toHaveBeenCalledWith({ runId: expect.any(String), path: "/r/a.http", text: "GET https://x.test\n", line: 0 });
+  expect(api.runRequest).toHaveBeenCalledWith({ runId: expect.any(String), path: "/r/a.http", text: "GET https://x.test\n", line: 0, env: null, root: null });
   expect(useResponses.getState().byTab[tabId]).toMatchObject({ status: "done", line: 0, response: { status: 200 } });
 });
 

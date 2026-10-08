@@ -8,7 +8,7 @@ use wiremock::matchers::{body_string, header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 fn req(method: &str, url: String) -> ResolvedRequest {
-    ResolvedRequest { method: method.into(), url, headers: vec![], body: None }
+    ResolvedRequest { method: method.into(), url, headers: vec![], body: None, secrets: vec![] }
 }
 
 #[tokio::test]

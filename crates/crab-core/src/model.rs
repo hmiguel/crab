@@ -69,6 +69,39 @@ pub struct ResolvedRequest {
     pub headers: Vec<Header>,
     #[serde(serialize_with = "serialize_body")]
     pub body: Option<Vec<u8>>,
+    /// Secret values substituted into this request; never sent to the UI.
+    #[serde(skip)]
+    pub secrets: Vec<String>,
+}
+
+/// Shown in place of secret values.
+pub const MASK: &str = "••••••";
+/// Shorter secrets stay visible: masking "1" would hide every 1 in the request.
+const MIN_SECRET_CHARS: usize = 4;
+
+impl ResolvedRequest {
+    fn maskable(&self) -> impl Iterator<Item = &String> {
+        self.secrets.iter().filter(|s| s.chars().count() >= MIN_SECRET_CHARS)
+    }
+
+    pub fn has_secrets(&self) -> bool {
+        self.maskable().next().is_some()
+    }
+
+    /// A copy safe to show and store: every secret occurrence becomes `MASK`. Binary bodies are left as they are.
+    pub fn masked(&self) -> ResolvedRequest {
+        let mask = |s: &str| self.maskable().fold(s.to_string(), |acc, secret| acc.replace(secret.as_str(), MASK));
+        ResolvedRequest {
+            method: self.method.clone(),
+            url: mask(&self.url),
+            headers: self.headers.iter().map(|h| Header { name: h.name.clone(), value: mask(&h.value) }).collect(),
+            body: self.body.as_ref().map(|b| match std::str::from_utf8(b) {
+                Ok(text) => mask(text).into_bytes(),
+                Err(_) => b.clone(),
+            }),
+            secrets: Vec::new(),
+        }
+    }
 }
 
 fn serialize_body<S: Serializer>(body: &Option<Vec<u8>>, s: S) -> Result<S::Ok, S::Error> {

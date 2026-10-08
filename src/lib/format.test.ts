@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { formatBytes, formatMs, formatRequest, prettyBody, reindentJson, statusClass } from "./format";
+import { dayLabel, formatBytes, formatMs, formatRequest, groupByDay, prettyBody, reindentJson, statusClass } from "./format";
 
 test("reindentJson keeps big integers and string contents intact", () => {
   const input = '{"id":12345678901234567890,"a":[1,2],"e":{},"s":"x, y: {z} \\"q\\""}';
@@ -29,4 +29,20 @@ test("formatRequest renders method, url, headers and body", () => {
   const req = { method: "POST", url: "https://x.test", headers: [{ name: "A", value: "1" }], body: "hi" };
   expect(formatRequest(req)).toBe("POST https://x.test\nA: 1\n\nhi");
   expect(formatRequest({ ...req, body: null })).toBe("POST https://x.test\nA: 1");
+});
+
+test("dayLabel says Today, Yesterday, then a date", () => {
+  const now = new Date(2026, 9, 8, 15, 0).getTime();
+  expect(dayLabel(new Date(2026, 9, 8, 0, 5).getTime(), now)).toBe("Today");
+  expect(dayLabel(new Date(2026, 9, 7, 23, 59).getTime(), now)).toBe("Yesterday");
+  expect(dayLabel(new Date(2026, 9, 1, 12, 0).getTime(), now)).toBe(new Date(2026, 9, 1).toLocaleDateString());
+});
+
+test("groupByDay keeps order and groups consecutive days", () => {
+  const now = new Date(2026, 9, 8, 15, 0).getTime();
+  const at = (d: number, h: number) => ({ atMs: new Date(2026, 9, d, h).getTime() });
+  const groups = groupByDay([at(8, 14), at(8, 9), at(7, 20), at(1, 8)], now);
+  expect(groups.map((g) => [g.label, g.items.length])).toEqual([
+    ["Today", 2], ["Yesterday", 1], [new Date(2026, 9, 1).toLocaleDateString(), 1],
+  ]);
 });

@@ -2,9 +2,14 @@ import { beforeEach, expect, test, vi } from "vitest";
 
 vi.mock("../api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../api")>()),
-  api: { saveState: vi.fn().mockResolvedValue(undefined), watchRoots: vi.fn().mockResolvedValue(undefined) },
+  api: {
+    saveState: vi.fn().mockResolvedValue(undefined),
+    watchRoots: vi.fn().mockResolvedValue(undefined),
+    listEnvironments: vi.fn().mockResolvedValue({ names: [], warnings: [] }),
+  },
 }));
 
+import { useEnvironments } from "./environments";
 import { handleFsChanged } from "./fs-events";
 import { useSearchIndex } from "./search-index";
 import { useTabs } from "./tabs";
@@ -33,4 +38,15 @@ test("drops changed .http files from the search index", () => {
   useSearchIndex.setState({ parsed: { "/r/a.http": [], "/r/b.http": [] } });
   handleFsChanged(["/r/a.http", "/r/target/foo.o"]);
   expect(Object.keys(useSearchIndex.getState().parsed)).toEqual(["/r/b.http"]);
+});
+
+test("env file changes refresh the environment names once", () => {
+  vi.useFakeTimers();
+  const refresh = vi.fn().mockResolvedValue(undefined);
+  useEnvironments.setState({ refresh });
+  handleFsChanged(["/r/http-client.env.json", "/r/sub/.env", "/r/package.json"]);
+  vi.advanceTimersByTime(300);
+  expect(refresh).toHaveBeenCalledTimes(1);
+  expect(refresh).toHaveBeenCalledWith(["/r"]);
+  vi.useRealTimers();
 });

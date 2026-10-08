@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { basename, isHttpFile, isUnder, joinPath, samePath } from "./paths";
+import { basename, isEnvFile, isHttpFile, isUnder, joinPath, samePath } from "./paths";
 
 test("joinPath uses the root's separator", () => {
   expect(joinPath("C:\\repo", "api/a.http")).toBe("C:\\repo\\api\\a.http");
@@ -18,4 +18,14 @@ test("basename, isUnder, isHttpFile", () => {
   expect(isUnder("/repo2/a.http", "/repo")).toBe(false);
   expect(isHttpFile("x/a.REST")).toBe(true);
   expect(isHttpFile("x/a.json")).toBe(false);
+});
+
+test("isEnvFile matches every env file name on any platform", () => {
+  expect(isEnvFile("/r/http-client.env.json")).toBe(true);
+  expect(isEnvFile("C:\\r\\http-client.private.env.json")).toBe(true);
+  expect(isEnvFile("/r/.env")).toBe(true);
+  expect(isEnvFile("/r/crab.env.json")).toBe(true);
+  expect(isEnvFile("C:\\r\\crab.private.env.json")).toBe(true);
+  expect(isEnvFile("/r/.env.local")).toBe(false);
+  expect(isEnvFile("/r/package.json")).toBe(false);
 });

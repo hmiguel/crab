@@ -110,3 +110,29 @@ kbd { font: 11px var(--mono); border: 1px solid var(--border); border-radius: 3p
 .quick-open-results .row.with-snippet { flex-wrap: wrap; }
 .quick-open-results .snippet { flex-basis: 100%; padding-left: 52px; color: var(--fg-muted); font: 11px var(--mono); overflow: hidden; text-overflow: ellipsis; }
 .quick-open-hint { padding: 4px 12px 10px; color: var(--fg-muted); font-size: 12px; }
+
+/* environments */
+:root { --env-green: var(--ok); --env-blue: var(--redirect); --env-amber: var(--client-error); --env-red: var(--server-error); }
+.env-green { --c: var(--env-green); } .env-blue { --c: var(--env-blue); } .env-amber { --c: var(--env-amber); } .env-red { --c: var(--env-red); }
+.env-bar { height: 3px; flex: none; background: var(--env-color, transparent); }
+:root[data-env-danger="true"] .statusbar { background: color-mix(in srgb, var(--env-red) 14%, var(--bg-alt)); }
+.env-dot { color: var(--c, var(--fg-muted)); }
+.env-menu { position: relative; }
+.env-button { display: flex; gap: 4px; align-items: center; }
+.env-popup { position: absolute; bottom: calc(100% + 4px); right: 0; z-index: 50; min-width: 240px; display: flex; flex-direction: column; padding: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 8px 24px rgb(0 0 0 / .2); }
+.env-popup hr { border: none; border-top: 1px solid var(--border); margin: 4px 0; width: 100%; }
+.env-item { display: flex; gap: 6px; align-items: center; text-align: left; }
+.env-item .check { width: 12px; }
+.env-warning { padding: 4px 6px; color: var(--client-error); max-width: 320px; white-space: normal; font-size: 12px; }
+.env-warn-mark { color: var(--client-error); }
+.env-empty { padding: 4px 6px; color: var(--fg-muted); max-width: 260px; white-space: normal; }
+.env-colors { display: flex; gap: 6px; align-items: center; padding: 4px 6px; }
+.env-colors span { flex: 1; color: var(--fg-muted); }
+.swatch { width: 16px; height: 16px; padding: 0; border-radius: 50%; border: 1px solid var(--border); background: var(--c, transparent); }
+.swatch[aria-pressed="true"] { outline: 2px solid var(--fg); outline-offset: 1px; }
+.env-confirm { display: flex; gap: 6px; align-items: center; padding: 4px 6px; }
+.env-confirm input { flex: none; }
+.request-view { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.request-view > :last-child { flex: 1; min-height: 0; }
+.request-env { display: flex; gap: 6px; align-items: center; padding: 4px 10px; border-bottom: 1px solid var(--border); color: var(--fg-muted); font-size: 12px; }
+.request-env button { margin-left: auto; }

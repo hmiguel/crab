@@ -8,8 +8,8 @@ use walkdir::WalkDir;
 
 use crate::error::{CrabError, ErrorKind};
 
-const SKIP_DIRS: &[&str] = &[".git", ".hg", ".svn", "node_modules", "target", "dist", "build", "bin", "obj", ".idea", ".vs", ".vscode"];
-const MAX_DEPTH: usize = 12;
+pub(crate) const SKIP_DIRS: &[&str] = &[".git", ".hg", ".svn", "node_modules", "target", "dist", "build", "bin", "obj", ".idea", ".vs", ".vscode"];
+pub(crate) const MAX_DEPTH: usize = 12;
 
 fn io_err(action: &str, path: &Path, e: impl std::fmt::Display) -> CrabError {
     CrabError::new(ErrorKind::Io, format!("{action} {}: {e}", path.display()))

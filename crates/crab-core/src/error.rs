@@ -9,6 +9,7 @@ pub enum ErrorKind {
     Timeout,
     Cancelled,
     Io,
+    Env,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, thiserror::Error)]

@@ -36,6 +36,7 @@ const fakeResponse = (status: number): ResponseData => ({
   request: { method: "GET", url: "https://x.test", headers: [], body: null },
   hasSecrets: false,
   env: null,
+  historyId: null,
 });
 
 let tabId: string;
@@ -155,4 +156,9 @@ test("a red environment checks the current text, not a stale outline", async () 
   expect(api.parseText).toHaveBeenCalledWith("POST https://x.test\n");
   expect(ask).toHaveBeenCalled();
   expect(api.runRequest).not.toHaveBeenCalled();
+});
+
+test("ResponseData carries the history id the backend assigned", () => {
+  const r: ResponseData = { ...fakeResponse(200), historyId: 42 };
+  expect(r.historyId).toBe(42);
 });

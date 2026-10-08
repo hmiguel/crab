@@ -2,15 +2,17 @@
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crab_core::error::{CrabError, ErrorKind};
 use crab_core::exec::{execute, ExecOptions, ResponseData};
 use crab_core::env::{self, EnvFiles, FileEnv};
+use crab_core::history::{ListQuery, NewRun, PastRun, RequestKey, RunSummary};
 use crab_core::model::{ParsedFile, ResolvedRequest};
-use crab_core::{files, parser, prepare_request};
+use crab_core::{files, parser, prepare_request, request_key};
 use notify_debouncer_mini::notify::RecursiveMode;
 use notify_debouncer_mini::{new_debouncer, DebounceEventResult};
+use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tokio_util::sync::CancellationToken;
 
@@ -40,19 +42,80 @@ pub async fn run_request(
         None => EnvFiles::default(),
     };
     let provider = FileEnv::new(env.clone(), files);
+    let key = request_key(&text, line);
     let request = prepare_request(&text, line, base_dir.as_deref(), &provider)?;
+    let masked = request.masked();
+    let at_ms = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_millis() as i64);
     let token = CancellationToken::new();
     state.runs.lock().unwrap().insert(run_id.clone(), token.clone());
     let result = execute(&request, &ExecOptions::default(), token).await;
     state.runs.lock().unwrap().remove(&run_id);
+    let result = result.map(|mut response| {
+        response.env = env.clone();
+        response.has_secrets = request.has_secrets();
+        response.request = masked.clone();
+        response
+    });
+    let history_id = key.and_then(|key| record_run(&state, at_ms, path.clone(), key, env, &masked, &result));
     let mut response = result?;
-    response.env = env;
-    response.has_secrets = request.has_secrets();
-    response.request = request.masked();
+    response.history_id = history_id;
     if response.has_secrets {
         state.remember_request(run_id, request);
     }
     Ok(response)
+}
+
+/// Save a sent run. A history failure never changes the run's result; it is surfaced through `history_status`.
+fn record_run(
+    state: &AppState,
+    at_ms: i64,
+    path: Option<String>,
+    key: RequestKey,
+    env: Option<String>,
+    masked: &ResolvedRequest,
+    result: &Result<ResponseData, CrabError>,
+) -> Option<i64> {
+    let run = NewRun::from_outcome(at_ms, path, key, env, masked, result)?;
+    let guard = state.history.lock().unwrap();
+    match guard.as_ref()?.record(&run) {
+        Ok(id) => Some(id),
+        Err(e) => {
+            *state.history_error.lock().unwrap() = Some(e.message);
+            None
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct HistoryStatus {
+    enabled: bool,
+    error: Option<String>,
+}
+
+#[tauri::command]
+pub fn history_list(state: State<'_, AppState>, query: ListQuery) -> Vec<RunSummary> {
+    let guard = state.history.lock().unwrap();
+    guard.as_ref().and_then(|h| h.list(&query).ok()).unwrap_or_default()
+}
+
+#[tauri::command]
+pub fn history_get(state: State<'_, AppState>, id: i64) -> Option<PastRun> {
+    let guard = state.history.lock().unwrap();
+    guard.as_ref().and_then(|h| h.get(id).ok().flatten())
+}
+
+#[tauri::command]
+pub fn history_clear(state: State<'_, AppState>) {
+    if let Some(h) = state.history.lock().unwrap().as_ref() {
+        if let Err(e) = h.clear() {
+            *state.history_error.lock().unwrap() = Some(e.message);
+        }
+    }
+}
+
+#[tauri::command]
+pub fn history_status(state: State<'_, AppState>) -> HistoryStatus {
+    HistoryStatus { enabled: state.history.lock().unwrap().is_some(), error: state.history_error.lock().unwrap().clone() }
 }
 
 #[tauri::command]

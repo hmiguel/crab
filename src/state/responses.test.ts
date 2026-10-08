@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import type { PastRun, ResponseData } from "../api";
-import { useResponses } from "./responses";
+import { canRunAgain, useResponses } from "./responses";
 
 const resp = (status: number): ResponseData => ({
   status, statusText: "OK", httpVersion: "HTTP/1.1", headers: [], contentType: null, bodyText: "", bodyBase64: null,
@@ -35,4 +35,27 @@ test("a new run replaces a past run and forgets the stashed live one", () => {
   s.start("t", "run2", 0);
   expect(useResponses.getState().byTab.t).toMatchObject({ status: "running" });
   expect(useResponses.getState().live.t).toBeUndefined();
+});
+
+test("a live run that settles while a past run is shown lands in the stash, not on the floor", () => {
+  const s = useResponses.getState();
+  s.start("t", "r1", 0);
+  s.showPast("t", { summary, request: resp(200).request, response: resp(200) }, 0);
+  s.finish("t", "r1", resp(201));
+  expect(useResponses.getState().byTab.t).toMatchObject({ past: { id: 7 } });
+  useResponses.getState().latest("t");
+  expect(useResponses.getState().byTab.t).toMatchObject({ status: "done", runId: "r1", response: { status: 201 } });
+
+  s.start("t", "r2", 0);
+  s.showPast("t", { summary, request: resp(200).request, response: resp(200) }, 0);
+  s.fail("t", "r2", { kind: "network", message: "down" });
+  useResponses.getState().latest("t");
+  expect(useResponses.getState().byTab.t).toMatchObject({ status: "error", runId: "r2" });
+});
+
+test("Run again only applies to the past run's own file", () => {
+  const past = { id: 1, atMs: 1, env: null, path: "/r/a.http" };
+  expect(canRunAgain(past, "/r/a.http")).toBe(true);
+  expect(canRunAgain(past, "/r/other.http")).toBe(false);
+  expect(canRunAgain({ ...past, path: null }, "/r/a.http")).toBe(false);
 });

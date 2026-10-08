@@ -91,7 +91,7 @@ impl NewRun {
             path,
             key,
             env,
-            request_json: serde_json::to_string(request).ok()?,
+            request_json: capped_request_json(request)?,
             method: request.method.clone(),
             url: request.url.clone(),
             response,
@@ -163,6 +163,18 @@ fn cap_text(text: &str) -> (&str, bool) {
         end -= 1;
     }
     (&text[..end], true)
+}
+
+/// The masked request as JSON, with its body capped like response bodies so uploads can't grow the file unboundedly.
+fn capped_request_json(request: &ResolvedRequest) -> Option<String> {
+    let mut v = serde_json::to_value(request).ok()?;
+    if let Some(Value::String(body)) = v.get_mut("body") {
+        let (kept, cut) = cap_text(body);
+        if cut {
+            *body = format!("{kept}\n… (truncated)");
+        }
+    }
+    Some(v.to_string())
 }
 
 fn error_kind_name(kind: ErrorKind) -> String {
@@ -319,7 +331,11 @@ impl History {
             .transpose()
     }
 
+    /// Delete every run and give the space back, so cleared responses don't linger in free pages on disk.
+    /// Dropping the tables skips the per-row index triggers, which re-tokenise every body.
     pub fn clear(&self) -> Result<(), CrabError> {
-        self.conn.execute_batch("DELETE FROM runs;").map_err(db_err)
+        self.conn.execute_batch("DROP TABLE IF EXISTS runs_fts; DROP TABLE IF EXISTS runs;").map_err(db_err)?;
+        self.conn.execute_batch(SCHEMA).map_err(db_err)?;
+        self.conn.execute_batch("VACUUM;").map_err(db_err)
     }
 }

@@ -185,3 +185,36 @@ fn request_keys_use_the_name_or_method_and_url_as_written() {
     assert_eq!(request_key(text, 5), Some(RequestKey { key: "GET {{host}}/orders?x={{id}}".into(), name: None, line: 5 }));
     assert_eq!(request_key("", 0), None);
 }
+
+#[test]
+fn request_bodies_are_capped_too() {
+    let (_d, h) = open();
+    let mut req = masked("https://x/upload");
+    req.body = Some(vec![b'z'; 3 * MAX_BODY_BYTES]);
+    let run = NewRun::from_outcome(1, None, key("k"), None, &req, &Ok(response(&req, "ok"))).unwrap();
+    let id = h.record(&run).unwrap();
+    let past = h.get(id).unwrap().unwrap();
+    let body = past.request["body"].as_str().unwrap();
+    assert!(body.len() <= MAX_BODY_BYTES + 64, "{}", body.len());
+    assert!(body.ends_with("… (truncated)"));
+    assert_eq!(past.response.unwrap()["request"]["body"].as_str().unwrap().len(), body.len());
+}
+
+#[test]
+fn clear_gives_the_disk_space_back() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("h.db");
+    let h = History::open(&path).unwrap();
+    let big = "x".repeat(MAX_BODY_BYTES);
+    for i in 0..5 {
+        h.record(&ok_run(i, "k", "https://x", &big)).unwrap();
+    }
+    let before = std::fs::metadata(&path).unwrap().len();
+    assert!(before > 4 * MAX_BODY_BYTES as u64);
+    h.clear().unwrap();
+    let after = std::fs::metadata(&path).unwrap().len();
+    assert!(after < 256 * 1024, "{after}");
+    // Still usable afterwards, search included.
+    h.record(&ok_run(9, "k", "https://x", "fresh")).unwrap();
+    assert_eq!(h.list(&ListQuery { query: Some("fresh".into()), ..q() }).unwrap().len(), 1);
+}

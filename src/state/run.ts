@@ -54,6 +54,8 @@ export async function runAt(tabId: string, line: number): Promise<void> {
 }
 
 export function cancelActive(tabId: string): void {
-  const current = useResponses.getState().byTab[tabId];
-  if (current?.status === "running") api.cancelRequest(current.runId).catch(console.error);
+  const { byTab, live } = useResponses.getState();
+  // The running state may be stashed behind a past run on screen.
+  const running = [byTab[tabId], live[tabId]].find((r) => r?.status === "running");
+  if (running) api.cancelRequest(running.runId).catch(console.error);
 }

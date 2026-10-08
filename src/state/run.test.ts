@@ -174,3 +174,12 @@ test("a failing history refresh never breaks a run", async () => {
   expect(useResponses.getState().byTab[tabId]).toMatchObject({ status: "done" });
   expect(refresh).toHaveBeenCalledTimes(1);
 });
+
+test("Esc still cancels a run that is hidden behind a past run", () => {
+  useResponses.getState().start(tabId, "r1", 0);
+  const summary = { id: 7, atMs: 1, path: "/r/a.http", requestKey: "k", requestLine: 0, name: null, method: "GET",
+    url: "https://x", env: null, status: 200, errorKind: null, errorMessage: null, totalMs: 1, sizeBytes: 0 };
+  useResponses.getState().showPast(tabId, { summary, request: fakeResponse(200).request, response: fakeResponse(200) }, 0);
+  cancelActive(tabId);
+  expect(api.cancelRequest).toHaveBeenCalledWith("r1");
+});

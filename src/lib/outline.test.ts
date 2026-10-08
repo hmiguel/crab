@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RequestBlock } from "../api";
-import { lineAtOffset, requestIndexAt } from "./outline";
+import { lineAtOffset, requestIndexAt, requestKeyAt, requestKeyOf } from "./outline";
 
 const req = (startLine: number, endLine: number): RequestBlock => ({
   name: null, method: "GET", url: "http://x", headers: [], body: null, span: { startLine, endLine }, requestLine: startLine + 1,
@@ -35,4 +35,19 @@ describe("requestIndexAt", () => {
     expect(requestIndexAt(requests, 13)).toBeNull();
     expect(requestIndexAt([], 0)).toBeNull();
   });
+});
+
+const blk = (name: string | null, method: string, url: string, start: number, end: number) => ({
+  name, method, url, headers: [], body: null, span: { startLine: start, endLine: end }, requestLine: start,
+});
+
+it("requestKeyOf matches the Rust key: name, else METHOD url-as-written", () => {
+  expect(requestKeyOf(blk("login", "POST", "{{host}}/login", 0, 2))).toBe("login");
+  expect(requestKeyOf(blk(null, "GET", "{{host}}/orders?x={{id}}", 0, 2))).toBe("GET {{host}}/orders?x={{id}}");
+});
+
+it("requestKeyAt finds the request under a line", () => {
+  const reqs = [blk(null, "GET", "/a", 0, 2), blk("b", "POST", "/b", 4, 6)];
+  expect(requestKeyAt(reqs, 5)).toBe("b");
+  expect(requestKeyAt(reqs, 3)).toBeNull();
 });

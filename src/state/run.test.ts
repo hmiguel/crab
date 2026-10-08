@@ -9,6 +9,8 @@ vi.mock("../api", async (importOriginal) => ({
     parseText: vi.fn(),
     saveState: vi.fn().mockResolvedValue(undefined),
     listEnvironments: vi.fn().mockResolvedValue({ names: [], warnings: [] }),
+    historyList: vi.fn().mockResolvedValue([]),
+    historyStatus: vi.fn().mockResolvedValue({ enabled: true, error: null }),
   },
 }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ ask: vi.fn() }));
@@ -16,6 +18,7 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({ ask: vi.fn() }));
 import { ask } from "@tauri-apps/plugin-dialog";
 import { api } from "../api";
 import { useEnvironments } from "./environments";
+import { useHistory } from "./history";
 import { useOutline } from "./outline";
 import { useResponses } from "./responses";
 import { cancelActive, runAt } from "./run";
@@ -161,4 +164,13 @@ test("a red environment checks the current text, not a stale outline", async () 
 test("ResponseData carries the history id the backend assigned", () => {
   const r: ResponseData = { ...fakeResponse(200), historyId: 42 };
   expect(r.historyId).toBe(42);
+});
+
+test("a failing history refresh never breaks a run", async () => {
+  vi.mocked(api.runRequest).mockResolvedValueOnce(fakeResponse(200));
+  const refresh = vi.fn().mockRejectedValue(new Error("history down"));
+  useHistory.setState({ refresh });
+  await runAt(tabId, 0);
+  expect(useResponses.getState().byTab[tabId]).toMatchObject({ status: "done" });
+  expect(refresh).toHaveBeenCalledTimes(1);
 });

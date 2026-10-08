@@ -22,6 +22,7 @@ Your requests stay as text files in your repositories. Crab doesn't need an acco
   - **Raw**, **Headers**, **Timing** (total, time to first byte, size).
   - **Request:** exactly what was sent, with every variable resolved.
 - **Variables:** `@name = value` file variables, nested `{{references}}`, and the dynamic values `{{$guid}}`, `{{$uuid}}`, `{{$timestamp}}` and `{{$randomInt min max}}`.
+- **Environments:** `http-client.env.json`, `http-client.private.env.json` and `.env`. Pick one in the status bar, give it a colour, and Crab asks before sending changes to red (production) environments. Private values are masked.
 - **Session restore:** open tabs, cursor positions, layout and **unsaved drafts** come back after a restart.
 - **Files are the source of truth**
   - Crab writes a file only when you press <kbd>⌘</kbd><kbd>S</kbd>.
@@ -80,6 +81,31 @@ Content-Type: application/json
 < ./payload.json
 ```
 
+## Environments
+
+Put an `http-client.env.json` next to your `.http` files, or in any folder above them inside the workspace folder:
+
+```json
+{
+  "$shared": { "version": "v1" },
+  "dev":  { "host": "localhost:8080" },
+  "prod": { "host": "api.example.com" }
+}
+```
+
+Keep secrets in `http-client.private.env.json`, which uses the same shape, and add that file to `.gitignore`. Values from the private file are shown as `••••••` in the Request tab, and **Reveal secrets** shows them.
+
+Choose the environment in the status bar. `{{name}}` is looked up in this order:
+1. `@name` file variables
+2. the private file's environment
+3. the public file's environment
+4. `$shared` (private, then public)
+5. `.env`
+
+`{{$dotenv NAME}}` reads `.env` only.
+
+Environments named like `prod`, `production` or `live` are red by default. You can give any environment a colour in the status bar menu. With a red environment selected, Crab asks before sending a POST, PUT, PATCH or DELETE. You can turn this off in the same menu.
+
 ## `.http` syntax supported
 
 | Syntax | Meaning |
@@ -94,6 +120,7 @@ Content-Type: application/json
 | `< ./file.json` | Body read from a file |
 | `@name = value` | File variable, used as `{{name}}` |
 | `{{$guid}}` `{{$uuid}}` `{{$timestamp}}` `{{$randomInt 1 10}}` | Dynamic values |
+| `{{$dotenv NAME}}` | A value from `.env` (see [Environments](#environments)) |
 | `> {% … %}`, `>> out.json` | JetBrains response handlers. They are skipped and never sent; running them is on the roadmap |
 
 ## Keyboard shortcuts
@@ -150,7 +177,7 @@ docs/               Design spec and implementation plan
 ## Roadmap
 
 Planned next:
-- Environments (`http-client.env.json`, `.env`) and searchable request history.
+- Searchable request history.
 - A `crab` CLI and an MCP server.
 - Request chaining, response handler scripts and assertions.
 - Import from cURL, Postman and Insomnia.

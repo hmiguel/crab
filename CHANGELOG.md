@@ -5,6 +5,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- Environments from `http-client.env.json`, `http-client.private.env.json` and `.env`, picked in the status bar. Each environment can have a colour, red environments ask before sending changes, and private values are masked in the Request tab.
+
 ## [0.1.0-beta.1] - 2026-10-07
 
 First public beta.

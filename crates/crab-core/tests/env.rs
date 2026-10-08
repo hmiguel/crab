@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use crab_core::env::{find_env_names, parse_dotenv, EnvFiles, FileEnv};
+use crab_core::env::{parse_dotenv, scan_env_files, EnvFiles, FileEnv};
 use crab_core::error::ErrorKind;
 use crab_core::vars::{EnvProvider, EnvValue};
 
@@ -131,13 +131,15 @@ fn names_merge_public_and_private_without_shared() {
 }
 
 #[test]
-fn find_env_names_walks_the_root_and_skips_build_folders() {
+fn scan_walks_the_root_and_skips_build_folders() {
     let dir = tempfile::tempdir().unwrap();
     write(dir.path(), "a/http-client.env.json", r#"{"dev": {}}"#);
     write(dir.path(), "b/http-client.private.env.json", r#"{"prod": {}}"#);
     write(dir.path(), "node_modules/x/http-client.env.json", r#"{"hidden": {}}"#);
     write(dir.path(), "c/http-client.env.json", "not json");
-    assert_eq!(find_env_names(dir.path()), vec!["dev", "prod"]);
+    let scan = scan_env_files(dir.path());
+    assert_eq!(scan.names, vec!["dev", "prod"]);
+    assert!(scan.warnings.is_empty());
 }
 
 #[test]
@@ -145,4 +147,43 @@ fn dotenv_with_bom_keeps_its_first_key() {
     let vars = parse_dotenv("\u{feff}API_KEY=abc\r\nOTHER=1\r\n");
     assert_eq!(vars.get("API_KEY").map(String::as_str), Some("abc"));
     assert_eq!(vars.get("OTHER").map(String::as_str), Some("1"));
+}
+
+#[test]
+fn crab_names_work_and_mix_with_jetbrains_names() {
+    let dir = tempfile::tempdir().unwrap();
+    write(dir.path(), "crab.env.json", r#"{"dev": {"host": "crab"}}"#);
+    write(dir.path(), "http-client.private.env.json", r#"{"dev": {"token": "jb-secret"}}"#);
+    let env = FileEnv::new(Some("dev".into()), EnvFiles::discover(&dir.path().join("a.http"), None).unwrap());
+    assert_eq!(env.get("host"), Some(EnvValue::public("crab")));
+    assert_eq!(env.get("token"), Some(EnvValue::secret("jb-secret")));
+
+    write(dir.path(), "crab.private.env.json", r#"{"dev": {"token": "crab-secret"}}"#);
+    let env = FileEnv::new(Some("dev".into()), EnvFiles::discover(&dir.path().join("a.http"), None).unwrap());
+    assert_eq!(env.get("token"), Some(EnvValue::secret("crab-secret")));
+}
+
+#[test]
+fn the_crab_name_wins_in_the_same_folder_and_the_nearest_folder_wins_across_styles() {
+    let dir = tempfile::tempdir().unwrap();
+    write(dir.path(), "crab.env.json", r#"{"dev": {"host": "crab"}}"#);
+    write(dir.path(), "http-client.env.json", r#"{"dev": {"host": "jetbrains"}}"#);
+    write(dir.path(), "sub/http-client.env.json", r#"{"dev": {"host": "sub-jetbrains"}}"#);
+    let at = |rel: &str| FileEnv::new(Some("dev".into()), EnvFiles::discover(&dir.path().join(rel), Some(dir.path())).unwrap());
+    assert_eq!(at("a.http").get("host"), Some(EnvValue::public("crab")));
+    assert_eq!(at("sub/a.http").get("host"), Some(EnvValue::public("sub-jetbrains")));
+}
+
+#[test]
+fn scan_ignores_the_shadowed_file_and_warns_about_it() {
+    let dir = tempfile::tempdir().unwrap();
+    write(dir.path(), "api/crab.env.json", r#"{"dev": {}}"#);
+    write(dir.path(), "api/http-client.env.json", r#"{"shadowed": {}}"#);
+    write(dir.path(), "web/crab.private.env.json", r#"{"prod": {}}"#);
+    let scan = scan_env_files(dir.path());
+    assert_eq!(scan.names, vec!["dev", "prod"]);
+    assert_eq!(scan.warnings.len(), 1);
+    let w = &scan.warnings[0];
+    assert!(w.starts_with("Both crab.env.json and http-client.env.json in "), "{w}");
+    assert!(w.ends_with("; using crab.env.json"), "{w}");
 }

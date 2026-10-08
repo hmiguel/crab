@@ -7,7 +7,7 @@ vi.mock("../api", async (importOriginal) => ({
     saveState: vi.fn().mockResolvedValue(undefined),
     watchRoots: vi.fn().mockResolvedValue(undefined),
     listHttpFiles: vi.fn(),
-    listEnvironments: vi.fn().mockResolvedValue([]),
+    listEnvironments: vi.fn().mockResolvedValue({ names: [], warnings: [] }),
   },
 }));
 

@@ -35,6 +35,8 @@ export type ResponseData = {
 };
 export type ErrorKind = "parse" | "unresolvedVars" | "network" | "timeout" | "cancelled" | "io" | "env";
 export type CrabError = { kind: ErrorKind; message: string };
+/** Environment names in the workspace, and warnings about env files that are ignored. */
+export type EnvScan = { names: string[]; warnings: string[] };
 export type StateName = "workspace" | "session";
 
 export const api = {
@@ -48,7 +50,7 @@ export const api = {
   loadState: <T>(name: StateName) => invoke<T | null>("load_state", { name }),
   saveState: (name: StateName, value: unknown) => invoke<void>("save_state", { name, value }),
   watchRoots: (roots: string[]) => invoke<void>("watch_roots", { roots }),
-  listEnvironments: (roots: string[]) => invoke<string[]>("list_environments", { roots }),
+  listEnvironments: (roots: string[]) => invoke<EnvScan>("list_environments", { roots }),
   revealRequest: (runId: string) => invoke<ResolvedRequest | null>("reveal_request", { runId }),
 };
 

@@ -19,6 +19,8 @@ export const isDanger = (s: Pick<EnvSettings, "colors">, name: string | null) =>
 type EnvironmentsState = EnvSettings & {
   /** Environment names found in the workspace's env files. */
   names: string[];
+  /** Env files that are ignored, e.g. both naming styles in one folder. */
+  warnings: string[];
   load(saved: Partial<EnvSettings> | undefined): void;
   select(name: string | null): void;
   setColor(name: string, color: EnvColor): void;
@@ -30,13 +32,14 @@ type EnvironmentsState = EnvSettings & {
 export const useEnvironments = create<EnvironmentsState>((set, get) => ({
   ...DEFAULTS,
   names: [],
+  warnings: [],
   load: (saved) => set({ ...DEFAULTS, ...saved }),
   select: (selected) => set({ selected }),
   setColor: (name, color) => set((s) => ({ colors: { ...s.colors, [name]: color } })),
   setConfirmDanger: (confirmDanger) => set({ confirmDanger }),
   async refresh(roots) {
-    const names = await api.listEnvironments(roots).catch(() => []);
-    set({ names });
+    const { names, warnings } = await api.listEnvironments(roots).catch(() => ({ names: [], warnings: [] }));
+    set({ names, warnings });
   },
   settings: () => {
     const { selected, colors, confirmDanger } = get();

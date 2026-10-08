@@ -4,6 +4,7 @@ import { colorOf, ENV_COLORS, useEnvironments } from "../state/environments";
 /** Status bar control: pick the environment, its colour, and whether red environments ask before changes. */
 export function EnvMenu() {
   const names = useEnvironments((s) => s.names);
+  const warnings = useEnvironments((s) => s.warnings);
   const selected = useEnvironments((s) => s.selected);
   const colors = useEnvironments((s) => s.colors);
   const confirmDanger = useEnvironments((s) => s.confirmDanger);
@@ -34,15 +35,16 @@ export function EnvMenu() {
 
   return (
     <div className="env-menu" ref={ref}>
-      <button className={`env-button env-${color}`} title="Environment" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+      <button className={`env-button env-${color}`} title={warnings.length ? `Environment (${warnings.length} warning${warnings.length > 1 ? "s" : ""})` : "Environment"} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
         <span className="env-dot" aria-hidden="true">●</span>
-        {selected ?? "No environment"}{missing ? " (not found)" : ""}
+        {selected ?? "No environment"}{missing ? " (not found)" : ""}{warnings.length > 0 && <span className="env-warn-mark" aria-hidden="true"> ⚠</span>}
       </button>
       {open && (
         <div className="env-popup" role="menu">
           {names.length === 0 && (
-            <div className="env-empty">No http-client.env.json found in the workspace. See "Environments" in the README.</div>
+            <div className="env-empty">No crab.env.json or http-client.env.json found in the workspace. See "Environments" in the README.</div>
           )}
+          {warnings.map((w) => <div key={w} className="env-warning">⚠ {w}</div>)}
           {names.map((n) => (
             <button key={n} role="menuitemradio" aria-checked={n === selected} className={`env-item env-${colorOf({ colors }, n)}`} onClick={() => choose(n)}>
               <span className="check">{n === selected ? "✓" : ""}</span>

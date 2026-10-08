@@ -11,7 +11,7 @@ import { colorOf, isDanger, useEnvironments } from "./environments";
 beforeEach(() => {
   vi.clearAllMocks();
   useEnvironments.getState().load(undefined);
-  useEnvironments.setState({ names: [] });
+  useEnvironments.setState({ names: [], warnings: [] });
 });
 
 test("defaults: nothing selected, confirmation on", () => {
@@ -42,12 +42,13 @@ test("select, setColor and setConfirmDanger update settings", () => {
   expect(useEnvironments.getState().settings()).toEqual({ selected: "prod", colors: { prod: "amber" }, confirmDanger: false });
 });
 
-test("refresh loads names and keeps a selection that disappeared", async () => {
+test("refresh loads names and warnings and keeps a selection that disappeared", async () => {
   useEnvironments.getState().select("old");
-  vi.mocked(api.listEnvironments).mockResolvedValue(["dev", "prod"]);
+  vi.mocked(api.listEnvironments).mockResolvedValue({ names: ["dev", "prod"], warnings: ["Both a and b in /r; using a"] });
   await useEnvironments.getState().refresh(["/r"]);
   expect(api.listEnvironments).toHaveBeenCalledWith(["/r"]);
   expect(useEnvironments.getState().names).toEqual(["dev", "prod"]);
+  expect(useEnvironments.getState().warnings).toEqual(["Both a and b in /r; using a"]);
   expect(useEnvironments.getState().selected).toBe("old");
 });
 
@@ -55,4 +56,5 @@ test("refresh failures leave the names empty", async () => {
   vi.mocked(api.listEnvironments).mockRejectedValue(new Error("boom"));
   await useEnvironments.getState().refresh(["/r"]);
   expect(useEnvironments.getState().names).toEqual([]);
+  expect(useEnvironments.getState().warnings).toEqual([]);
 });

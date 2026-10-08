@@ -1,5 +1,6 @@
 //! `{{variable}}` substitution: file variables, then the environment, plus `$`-prefixed dynamic values.
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::OnceLock;
@@ -13,15 +14,39 @@ use crate::model::{BodySource, FileVar, Header, RequestBlock, ResolvedRequest};
 
 const MAX_DEPTH: usize = 10;
 
-/// Source of environment values (M2 adds http-client.env.json / .env providers).
+/// A value from the environment. `secret` marks values from private files, which are masked in what the UI shows.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EnvValue {
+    pub value: String,
+    pub secret: bool,
+}
+
+impl EnvValue {
+    pub fn public(value: impl Into<String>) -> Self {
+        Self { value: value.into(), secret: false }
+    }
+    pub fn secret(value: impl Into<String>) -> Self {
+        Self { value: value.into(), secret: true }
+    }
+}
+
+/// Source of environment values (see `env::FileEnv`).
 pub trait EnvProvider {
-    fn get(&self, name: &str) -> Option<String>;
+    fn get(&self, name: &str) -> Option<EnvValue>;
+    /// `{{$dotenv NAME}}`: values from `.env` only.
+    fn dotenv(&self, _name: &str) -> Option<EnvValue> {
+        None
+    }
+    /// The selected environment, named in unresolved-variable errors.
+    fn env_name(&self) -> Option<&str> {
+        None
+    }
 }
 
 pub struct NoEnv;
 
 impl EnvProvider for NoEnv {
-    fn get(&self, _name: &str) -> Option<String> {
+    fn get(&self, _name: &str) -> Option<EnvValue> {
         None
     }
 }
@@ -29,6 +54,8 @@ impl EnvProvider for NoEnv {
 pub struct Resolver<'a> {
     file_vars: HashMap<String, String>,
     env: &'a dyn EnvProvider,
+    /// Secret values substituted so far, for `ResolvedRequest::masked`.
+    secrets: RefCell<Vec<String>>,
 }
 
 fn placeholder() -> &'static Regex {
@@ -39,13 +66,13 @@ fn placeholder() -> &'static Regex {
 impl<'a> Resolver<'a> {
     pub fn new(vars: &[FileVar], env: &'a dyn EnvProvider) -> Self {
         let file_vars = vars.iter().map(|v| (v.name.clone(), v.value.clone())).collect();
-        Self { file_vars, env }
+        Self { file_vars, env, secrets: RefCell::default() }
     }
 
     pub fn resolve(&self, input: &str) -> Result<String, CrabError> {
         let mut missing = Vec::new();
         let out = self.resolve_into(input, &mut missing);
-        match unresolved_error(missing) {
+        match unresolved_error(missing, self.env.env_name()) {
             Some(err) => Err(err),
             None => Ok(out),
         }
@@ -83,9 +110,32 @@ impl<'a> Resolver<'a> {
 
     fn lookup(&self, expr: &str) -> Option<String> {
         if let Some(dynamic) = expr.strip_prefix('$') {
+            let mut parts = dynamic.split_whitespace();
+            if parts.next() == Some("dotenv") {
+                return parts.next().and_then(|name| self.env_value(self.env.dotenv(name)));
+            }
             return dynamic_value(dynamic);
         }
-        self.file_vars.get(expr).cloned().or_else(|| self.env.get(expr))
+        if let Some(v) = self.file_vars.get(expr) {
+            return Some(v.clone());
+        }
+        self.env_value(self.env.get(expr))
+    }
+
+    fn env_value(&self, value: Option<EnvValue>) -> Option<String> {
+        let value = value?;
+        if value.secret {
+            self.secrets.borrow_mut().push(value.value.clone());
+        }
+        Some(value.value)
+    }
+
+    /// Secret values substituted so far, longest first so masking never leaves part of a longer secret visible.
+    fn take_secrets(&self) -> Vec<String> {
+        let mut secrets = std::mem::take(&mut *self.secrets.borrow_mut());
+        secrets.sort_by(|a, b| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
+        secrets.dedup();
+        secrets
     }
 }
 
@@ -103,13 +153,14 @@ fn dynamic_value(expr: &str) -> Option<String> {
     }
 }
 
-fn unresolved_error(mut missing: Vec<String>) -> Option<CrabError> {
+fn unresolved_error(mut missing: Vec<String>, env: Option<&str>) -> Option<CrabError> {
     if missing.is_empty() {
         return None;
     }
     missing.sort();
     missing.dedup();
-    Some(CrabError::new(ErrorKind::UnresolvedVars, format!("Unresolved variables: {}", missing.join(", "))))
+    let suffix = env.map(|e| format!(" (environment: {e})")).unwrap_or_default();
+    Some(CrabError::new(ErrorKind::UnresolvedVars, format!("Unresolved variables: {}{suffix}", missing.join(", "))))
 }
 
 pub fn resolve_request(block: &RequestBlock, resolver: &Resolver, base_dir: Option<&Path>) -> Result<ResolvedRequest, CrabError> {
@@ -140,10 +191,10 @@ pub fn resolve_request(block: &RequestBlock, resolver: &Resolver, base_dir: Opti
         }
     };
 
-    if let Some(err) = unresolved_error(missing) {
+    if let Some(err) = unresolved_error(missing, resolver.env.env_name()) {
         return Err(err);
     }
-    Ok(ResolvedRequest { method: block.method.clone(), url, headers, body })
+    Ok(ResolvedRequest { method: block.method.clone(), url, headers, body, secrets: resolver.take_secrets() })
 }
 
 fn read_body_file(path: &str, base_dir: Option<&Path>) -> Result<Vec<u8>, CrabError> {

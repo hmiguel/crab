@@ -133,6 +133,8 @@ async fn send(req: &ResolvedRequest, opts: &ExecOptions) -> Result<ResponseData,
 }
 
 fn map_reqwest(e: reqwest::Error, timeout: Duration) -> CrabError {
+    // The resolved URL may carry secrets; the UI already knows which request failed.
+    let e = e.without_url();
     if e.is_timeout() {
         CrabError::new(ErrorKind::Timeout, format!("Request timed out after {} s", timeout.as_secs_f64()))
     } else if e.is_builder() {

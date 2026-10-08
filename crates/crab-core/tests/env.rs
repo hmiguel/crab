@@ -139,3 +139,10 @@ fn find_env_names_walks_the_root_and_skips_build_folders() {
     write(dir.path(), "c/http-client.env.json", "not json");
     assert_eq!(find_env_names(dir.path()), vec!["dev", "prod"]);
 }
+
+#[test]
+fn dotenv_with_bom_keeps_its_first_key() {
+    let vars = parse_dotenv("\u{feff}API_KEY=abc\r\nOTHER=1\r\n");
+    assert_eq!(vars.get("API_KEY").map(String::as_str), Some("abc"));
+    assert_eq!(vars.get("OTHER").map(String::as_str), Some("1"));
+}

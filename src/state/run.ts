@@ -3,7 +3,6 @@ import { api, toCrabError, type RequestBlock } from "../api";
 import { requestIndexAt } from "../lib/outline";
 import { isUnder } from "../lib/paths";
 import { isDanger, useEnvironments } from "./environments";
-import { useOutline } from "./outline";
 import { useResponses } from "./responses";
 import { useTabs, type Tab } from "./tabs";
 import { useWorkspace } from "./workspace";
@@ -11,8 +10,9 @@ import { useWorkspace } from "./workspace";
 /** Methods that never change data, so they never ask for confirmation. */
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
+/** Parses the current text, never the editor's debounced outline: a just-typed DELETE must not pass as the old GET. */
 async function requestAt(tab: Tab, line: number): Promise<RequestBlock | null> {
-  const requests = useOutline.getState().get(tab.path) ?? (await api.parseText(tab.text)).requests;
+  const { requests } = await api.parseText(tab.text);
   const i = requestIndexAt(requests, line);
   return i === null ? null : requests[i];
 }

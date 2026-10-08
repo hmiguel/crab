@@ -150,3 +150,14 @@ async fn runs_with_file_env_and_returns_a_masked_copy() {
     assert_eq!(resp.env, None);
     assert_eq!(req.masked().headers[0].value, format!("Bearer {MASK}"));
 }
+
+#[tokio::test]
+async fn network_errors_never_include_the_url() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+    drop(listener);
+    let url = format!("http://127.0.0.1:{port}/v1?api_key=s3cret-key");
+    let err = execute(&req("GET", url), &ExecOptions::default(), CancellationToken::new()).await.unwrap_err();
+    assert_eq!(err.kind, ErrorKind::Network);
+    assert!(!err.message.contains("s3cret-key"), "{}", err.message);
+}

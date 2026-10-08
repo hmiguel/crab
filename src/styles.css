@@ -148,3 +148,6 @@ kbd { font: 11px var(--mono); border: 1px solid var(--border); border-radius: 3p
 .history-time { color: var(--fg-muted); font-size: 11px; flex: none; }
 .history-clear { flex: none; margin: 6px 8px; color: var(--fg-muted); }
 .status.server-error { color: var(--server-error); }
+.run-history { margin-left: auto; font: inherit; font-size: 12px; color: var(--fg); background: var(--bg); border: 1px solid var(--border); border-radius: 4px; }
+.past-banner { display: flex; gap: 8px; align-items: center; padding: 4px 10px; background: color-mix(in srgb, var(--redirect) 12%, var(--bg)); color: var(--fg); font-size: 12px; border-bottom: 1px solid var(--border); }
+.past-banner span { flex: 1; }

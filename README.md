@@ -16,6 +16,7 @@ Your requests stay as text files in your repositories. Crab doesn't need an acco
 
 - **Workspace across repositories.** Group folders from any number of repos into named virtual folders. The sidebar lists every `.http`/`.rest` file and the requests inside it.
 - **Editor tabs** with `.http` syntax highlighting, a ▶ marker on every request line, and inline warnings for malformed lines.
+- **Quick open** with <kbd>⌘</kbd><kbd>P</kbd> (<kbd>Ctrl</kbd><kbd>P</kbd> on Windows): fuzzy-search every file and request in the workspace by name, URL or path, and jump straight to it.
 - **Run the request under the cursor** with <kbd>⌘</kbd><kbd>Enter</kbd> (<kbd>Ctrl</kbd><kbd>Enter</kbd> on Windows) or by clicking ▶. Unsaved edits are what gets sent. <kbd>Esc</kbd> cancels a running request.
 - **Response viewer**
   - **Body:** pretty-printed, foldable JSON. Big integers are never rounded. Images render inline.

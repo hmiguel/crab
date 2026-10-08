@@ -2,7 +2,8 @@ import { useState } from "react";
 import { api, type ResolvedRequest, type ResponseData } from "../api";
 import { errorTitle, formatBytes, formatMs, formatRawResponse, formatRequest, pastBanner, prettyBody, statusClass } from "../lib/format";
 import { colorOf, useEnvironments } from "../state/environments";
-import { useResponses } from "../state/responses";
+import { lineAtOffset } from "../lib/outline";
+import { canRunAgain, useResponses, type PastInfo } from "../state/responses";
 import { cancelActive, runAt } from "../state/run";
 import { useTabs } from "../state/tabs";
 import { showError } from "../ui/actions";
@@ -36,7 +37,7 @@ export function ResponsePanel() {
         <header className="response-summary">
           <RunHistoryPicker tabId={activeId} pastId={run.past?.id ?? null} />
         </header>
-        {run.past && <PastBanner tabId={activeId} line={run.line} text={pastBanner(run.past)} />}
+        {run.past && <PastBanner tabId={activeId} past={run.past} />}
         <div className="response-error">
           <h3>{errorTitle(run.error.kind)}</h3>
           <pre>{run.error.message}</pre>
@@ -54,7 +55,7 @@ export function ResponsePanel() {
         <span>{formatBytes(r.sizeBytes)}{r.truncated ? " (truncated)" : ""}</span>
         <RunHistoryPicker tabId={activeId} pastId={run.past?.id ?? null} />
       </header>
-      {run.past && <PastBanner tabId={activeId} line={run.line} text={pastBanner(run.past)} />}
+      {run.past && <PastBanner tabId={activeId} past={run.past} />}
       <nav className="subtabs">
         {VIEWS.map((v) => (
           <button key={v} className={v === view ? "active" : ""} onClick={() => setView(v)}>
@@ -73,11 +74,14 @@ export function ResponsePanel() {
   );
 }
 
-function PastBanner({ tabId, line, text }: { tabId: string; line: number; text: string }) {
+function PastBanner({ tabId, past }: { tabId: string; past: PastInfo }) {
+  const tab = useTabs((s) => s.tabs.find((t) => t.id === tabId));
   return (
     <div className="past-banner">
-      <span>{text}</span>
-      <button onClick={() => void runAt(tabId, line)}>Run again</button>
+      <span>{pastBanner(past)}</span>
+      {tab && canRunAgain(past, tab.path) && (
+        <button onClick={() => void runAt(tabId, lineAtOffset(tab.text, tab.cursor))}>Run again</button>
+      )}
       <button onClick={() => useResponses.getState().latest(tabId)}>Latest</button>
     </div>
   );

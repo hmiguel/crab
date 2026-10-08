@@ -92,19 +92,20 @@ pub struct HistoryStatus {
     error: Option<String>,
 }
 
-#[tauri::command]
+/// History commands run off the main thread (`async`): a large search or Clear must never freeze the window.
+#[tauri::command(async)]
 pub fn history_list(state: State<'_, AppState>, query: ListQuery) -> Vec<RunSummary> {
     let guard = state.history.lock().unwrap();
     guard.as_ref().and_then(|h| h.list(&query).ok()).unwrap_or_default()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn history_get(state: State<'_, AppState>, id: i64) -> Option<PastRun> {
     let guard = state.history.lock().unwrap();
     guard.as_ref().and_then(|h| h.get(id).ok().flatten())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn history_clear(state: State<'_, AppState>) {
     if let Some(h) = state.history.lock().unwrap().as_ref() {
         if let Err(e) = h.clear() {
@@ -113,7 +114,7 @@ pub fn history_clear(state: State<'_, AppState>) {
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn history_status(state: State<'_, AppState>) -> HistoryStatus {
     HistoryStatus { enabled: state.history.lock().unwrap().is_some(), error: state.history_error.lock().unwrap().clone() }
 }

@@ -1,8 +1,12 @@
 import { create } from "zustand";
 import type { CrabError, PastRun, ResponseData } from "../api";
+import { samePath } from "../lib/paths";
 
 /** Shown instead of a live result while the user looks at a run from history. */
-export type PastInfo = { id: number; atMs: number; env: string | null };
+export type PastInfo = { id: number; atMs: number; env: string | null; path: string | null };
+
+/** "Run again" only makes sense in the past run's own file; elsewhere it would run an unrelated request. */
+export const canRunAgain = (past: PastInfo, tabPath: string) => past.path !== null && samePath(past.path, tabPath);
 
 export type RunState =
   | { status: "running"; runId: string; line: number }
@@ -31,7 +35,10 @@ export const useResponses = create<ResponsesState>((set, get) => {
   /** Only the run that is still current for the tab may settle it. */
   const settle = (tabId: string, runId: string, next: (cur: RunState) => RunState) => {
     const cur = get().byTab[tabId];
-    if (cur?.runId === runId) set((s) => ({ byTab: { ...s.byTab, [tabId]: next(cur) } }));
+    if (cur?.runId === runId) return set((s) => ({ byTab: { ...s.byTab, [tabId]: next(cur) } }));
+    // A past run is on screen: the live run settles in the stash, so Latest shows its result.
+    const stashed = get().live[tabId];
+    if (stashed?.runId === runId) set((s) => ({ live: { ...s.live, [tabId]: next(stashed) } }));
   };
   return {
     byTab: {},
@@ -45,7 +52,7 @@ export const useResponses = create<ResponsesState>((set, get) => {
       set((s) => {
         const cur = s.byTab[tabId];
         const live = cur && !("past" in cur && cur.past) ? { ...s.live, [tabId]: cur } : s.live;
-        const past: PastInfo = { id: run.summary.id, atMs: run.summary.atMs, env: run.summary.env };
+        const past: PastInfo = { id: run.summary.id, atMs: run.summary.atMs, env: run.summary.env, path: run.summary.path };
         const runId = `past-${run.summary.id}`;
         const next: RunState = run.response
           ? { status: "done", runId, line, response: run.response, past }

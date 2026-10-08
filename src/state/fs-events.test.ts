@@ -6,6 +6,7 @@ vi.mock("../api", async (importOriginal) => ({
 }));
 
 import { handleFsChanged } from "./fs-events";
+import { useSearchIndex } from "./search-index";
 import { useTabs } from "./tabs";
 import { useWorkspace } from "./workspace";
 
@@ -26,4 +27,10 @@ test("rescans affected roots once and notifies tabs about .http changes only", (
   expect(refreshRoot).toHaveBeenCalledTimes(1);
   expect(refreshRoot).toHaveBeenCalledWith("/r");
   vi.useRealTimers();
+});
+
+test("drops changed .http files from the search index", () => {
+  useSearchIndex.setState({ parsed: { "/r/a.http": [], "/r/b.http": [] } });
+  handleFsChanged(["/r/a.http", "/r/target/foo.o"]);
+  expect(Object.keys(useSearchIndex.getState().parsed)).toEqual(["/r/b.http"]);
 });

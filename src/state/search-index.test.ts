@@ -10,8 +10,8 @@ import { useOutline } from "./outline";
 import { searchItems, useSearchIndex } from "./search-index";
 import { useWorkspace } from "./workspace";
 
-const req = (method: string, url: string, requestLine: number, name: string | null = null): RequestBlock => ({
-  name, method, url, headers: [], body: null, span: { startLine: requestLine, endLine: requestLine }, requestLine,
+const req = (method: string, url: string, requestLine: number, name: string | null = null, extra: Partial<RequestBlock> = {}): RequestBlock => ({
+  name, method, url, headers: [], body: null, span: { startLine: requestLine, endLine: requestLine }, requestLine, ...extra,
 });
 
 const disk: Record<string, RequestBlock[]> = {
@@ -37,9 +37,9 @@ test("indexes every file and its requests", async () => {
   await useSearchIndex.getState().ensure();
   expect(current()).toEqual([
     { kind: "file", path: "/r/a.http", display: "r/a.http" },
-    { kind: "request", path: "/r/a.http", display: "r/a.http", method: "GET", label: "List users", url: "https://x/users", requestLine: 0 },
+    { kind: "request", path: "/r/a.http", display: "r/a.http", method: "GET", label: "List users", url: "https://x/users", requestLine: 0, content: "" },
     { kind: "file", path: "/r/sub/b.rest", display: "r/sub/b.rest" },
-    { kind: "request", path: "/r/sub/b.rest", display: "r/sub/b.rest", method: "POST", label: "https://x/orders", url: "https://x/orders", requestLine: 3 },
+    { kind: "request", path: "/r/sub/b.rest", display: "r/sub/b.rest", method: "POST", label: "https://x/orders", url: "https://x/orders", requestLine: 3, content: "" },
   ]);
   expect(useSearchIndex.getState().indexing).toBe(false);
 });
@@ -77,4 +77,19 @@ test("files no longer in the workspace are not listed", async () => {
   await useSearchIndex.getState().ensure();
   useWorkspace.setState({ files: { "/r": ["a.http"] } });
   expect(current().some((i) => i.path === "/r/sub/b.rest")).toBe(false);
+});
+
+test("request content holds headers and the inline body, capped; file bodies are not read", () => {
+  useOutline.getState().set("/r/a.http", [
+    req("POST", "https://x", 0, null, {
+      headers: [{ name: "Authorization", value: "Bearer {{token}}" }],
+      body: { kind: "inline", value: '{"customerId": 7}' + "z".repeat(5000) },
+    }),
+    req("POST", "https://x", 9, null, { body: { kind: "file", value: "./payload.json" } }),
+  ]);
+  const [first, second] = current().filter((i) => i.kind === "request" && i.path === "/r/a.http");
+  expect(first).toMatchObject({ content: expect.stringContaining('Authorization: Bearer {{token}}\n{"customerId": 7}') });
+  expect(first.kind === "request" && first.content.length).toBe(4096);
+  expect(second).toMatchObject({ content: "" });
+  expect(api.readTextFile).not.toHaveBeenCalled();
 });

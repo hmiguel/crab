@@ -107,4 +107,6 @@ kbd { font: 11px var(--mono); border: 1px solid var(--border); border-radius: 3p
 .quick-open-results { list-style: none; margin: 0; padding: 0 0 6px; overflow: auto; }
 .quick-open-results .row { padding: 4px 12px; gap: 8px; }
 .quick-open-results .where { color: var(--fg-muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+.quick-open-results .row.with-snippet { flex-wrap: wrap; }
+.quick-open-results .snippet { flex-basis: 100%; padding-left: 52px; color: var(--fg-muted); font: 11px var(--mono); overflow: hidden; text-overflow: ellipsis; }
 .quick-open-hint { padding: 4px 12px 10px; color: var(--fg-muted); font-size: 12px; }

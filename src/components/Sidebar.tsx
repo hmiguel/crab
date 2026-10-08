@@ -3,11 +3,13 @@ import { ask, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { api, type RequestBlock } from "../api";
 import { lineAtOffset, requestIndexAt } from "../lib/outline";
 import { basename, isUnder, joinPath, normPath, samePath } from "../lib/paths";
+import { shortcutLabel } from "../lib/keys";
 import { buildTree, type TreeNode } from "../lib/tree";
 import { useOutline } from "../state/outline";
 import { useTabs } from "../state/tabs";
 import { useWorkspace, type VirtualFolder } from "../state/workspace";
 import { showError } from "../ui/actions";
+import { openQuickOpen } from "./QuickOpen";
 
 /** The file and 0-based cursor line of the active tab; the tree follows it. */
 type ActiveLocation = { path: string | null; line: number };
@@ -38,7 +40,10 @@ export function Sidebar() {
       <aside className="sidebar">
         <div className="sidebar-header">
           <span>Workspace</span>
-          <button title="New virtual folder" onClick={() => useWorkspace.getState().addFolder("New folder")}>＋</button>
+          <span className="actions">
+            <button title={`Search files and requests (${shortcutLabel("P")})`} onClick={openQuickOpen}>⌕</button>
+            <button title="New virtual folder" onClick={() => useWorkspace.getState().addFolder("New folder")}>＋</button>
+          </span>
         </div>
         <div className="sidebar-body">
           {folders.map((f) => <FolderView key={f.id} folder={f} />)}

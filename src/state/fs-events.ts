@@ -1,5 +1,6 @@
 import { debounce } from "../lib/debounce";
 import { isHttpFile, isUnder } from "../lib/paths";
+import { useSearchIndex } from "./search-index";
 import { useTabs } from "./tabs";
 import { useWorkspace } from "./workspace";
 
@@ -20,5 +21,6 @@ export function handleFsChanged(paths: string[]): void {
     for (const root of roots) if (isUnder(p, root)) pendingRoots.add(root);
     if (isHttpFile(p)) void useTabs.getState().onDiskChange(p);
   }
+  useSearchIndex.getState().invalidate(paths.filter(isHttpFile));
   if (pendingRoots.size > 0) refreshPending();
 }

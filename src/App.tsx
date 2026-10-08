@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Editor } from "./editor/Editor";
+import { QuickOpen, openQuickOpen } from "./components/QuickOpen";
 import { ResponsePanel } from "./components/ResponsePanel";
 import { Sidebar } from "./components/Sidebar";
 import { StatusBar } from "./components/StatusBar";
@@ -39,6 +40,9 @@ export function App() {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "w") {
         e.preventDefault();
         if (id) void closeTabWithPrompt(id);
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        openQuickOpen();
       } else if (e.key === "Escape" && id) {
         cancelActive(id);
       }
@@ -72,6 +76,7 @@ export function App() {
         </Panel>
       </PanelGroup>
       <StatusBar />
+      <QuickOpen />
     </div>
   );
 }

@@ -9,6 +9,8 @@ vi.mock("../api", async (importOriginal) => ({
     parseText: vi.fn(),
     saveState: vi.fn().mockResolvedValue(undefined),
     listEnvironments: vi.fn().mockResolvedValue({ names: [], warnings: [] }),
+    historyList: vi.fn().mockResolvedValue([]),
+    historyStatus: vi.fn().mockResolvedValue({ enabled: true, error: null }),
   },
 }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ ask: vi.fn() }));
@@ -16,6 +18,7 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({ ask: vi.fn() }));
 import { ask } from "@tauri-apps/plugin-dialog";
 import { api } from "../api";
 import { useEnvironments } from "./environments";
+import { useHistory } from "./history";
 import { useOutline } from "./outline";
 import { useResponses } from "./responses";
 import { cancelActive, runAt } from "./run";
@@ -36,6 +39,7 @@ const fakeResponse = (status: number): ResponseData => ({
   request: { method: "GET", url: "https://x.test", headers: [], body: null },
   hasSecrets: false,
   env: null,
+  historyId: null,
 });
 
 let tabId: string;
@@ -155,4 +159,27 @@ test("a red environment checks the current text, not a stale outline", async () 
   expect(api.parseText).toHaveBeenCalledWith("POST https://x.test\n");
   expect(ask).toHaveBeenCalled();
   expect(api.runRequest).not.toHaveBeenCalled();
+});
+
+test("ResponseData carries the history id the backend assigned", () => {
+  const r: ResponseData = { ...fakeResponse(200), historyId: 42 };
+  expect(r.historyId).toBe(42);
+});
+
+test("a failing history refresh never breaks a run", async () => {
+  vi.mocked(api.runRequest).mockResolvedValueOnce(fakeResponse(200));
+  const refresh = vi.fn().mockRejectedValue(new Error("history down"));
+  useHistory.setState({ refresh });
+  await runAt(tabId, 0);
+  expect(useResponses.getState().byTab[tabId]).toMatchObject({ status: "done" });
+  expect(refresh).toHaveBeenCalledTimes(1);
+});
+
+test("Esc still cancels a run that is hidden behind a past run", () => {
+  useResponses.getState().start(tabId, "r1", 0);
+  const summary = { id: 7, atMs: 1, path: "/r/a.http", requestKey: "k", requestLine: 0, name: null, method: "GET",
+    url: "https://x", env: null, status: 200, errorKind: null, errorMessage: null, totalMs: 1, sizeBytes: 0 };
+  useResponses.getState().showPast(tabId, { summary, request: fakeResponse(200).request, response: fakeResponse(200) }, 0);
+  cancelActive(tabId);
+  expect(api.cancelRequest).toHaveBeenCalledWith("r1");
 });

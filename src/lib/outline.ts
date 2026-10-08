@@ -13,3 +13,10 @@ export function requestIndexAt(requests: RequestBlock[], line: number): number |
   const i = requests.findIndex((r) => r.span.startLine <= line && line <= r.span.endLine);
   return i >= 0 ? i : null;
 }
+/** Groups a request's runs in history. Must match `crab_core::request_key`. */
+export const requestKeyOf = (r: RequestBlock): string => r.name ?? `${r.method} ${r.url}`;
+
+export function requestKeyAt(requests: RequestBlock[], line: number): string | null {
+  const i = requestIndexAt(requests, line);
+  return i === null ? null : requestKeyOf(requests[i]);
+}

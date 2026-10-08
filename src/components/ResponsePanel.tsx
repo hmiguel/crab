@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { api, type ResolvedRequest, type ResponseData } from "../api";
-import { errorTitle, formatBytes, formatMs, formatRawResponse, formatRequest, prettyBody, statusClass } from "../lib/format";
+import { errorTitle, formatBytes, formatMs, formatRawResponse, formatRequest, pastBanner, prettyBody, statusClass } from "../lib/format";
 import { colorOf, useEnvironments } from "../state/environments";
-import { useResponses } from "../state/responses";
-import { cancelActive } from "../state/run";
+import { lineAtOffset } from "../lib/outline";
+import { canRunAgain, useResponses, type PastInfo } from "../state/responses";
+import { cancelActive, runAt } from "../state/run";
 import { useTabs } from "../state/tabs";
 import { showError } from "../ui/actions";
 import { CodeView } from "./CodeView";
+import { RunHistoryPicker } from "./RunHistoryPicker";
 import { shortcutLabel } from "../lib/keys";
 
 const VIEWS = ["body", "raw", "headers", "timing", "request"] as const;
@@ -32,6 +34,10 @@ export function ResponsePanel() {
   if (run.status === "error") {
     return (
       <section className="response">
+        <header className="response-summary">
+          <RunHistoryPicker tabId={activeId} pastId={run.past?.id ?? null} />
+        </header>
+        {run.past && <PastBanner tabId={activeId} past={run.past} />}
         <div className="response-error">
           <h3>{errorTitle(run.error.kind)}</h3>
           <pre>{run.error.message}</pre>
@@ -47,7 +53,9 @@ export function ResponsePanel() {
         <span className={`status ${statusClass(r.status)}`}>{r.status} {r.statusText}</span>
         <span>{formatMs(r.timing.totalMs)}</span>
         <span>{formatBytes(r.sizeBytes)}{r.truncated ? " (truncated)" : ""}</span>
+        <RunHistoryPicker tabId={activeId} pastId={run.past?.id ?? null} />
       </header>
+      {run.past && <PastBanner tabId={activeId} past={run.past} />}
       <nav className="subtabs">
         {VIEWS.map((v) => (
           <button key={v} className={v === view ? "active" : ""} onClick={() => setView(v)}>
@@ -60,9 +68,22 @@ export function ResponsePanel() {
         {view === "raw" && <CodeView text={formatRawResponse(r)} lang="text" />}
         {view === "headers" && <HeadersView r={r} />}
         {view === "timing" && <TimingView r={r} />}
-        {view === "request" && <RequestView key={run.runId} runId={run.runId} r={r} />}
+        {view === "request" && <RequestView key={run.runId} runId={run.runId} r={run.past ? { ...r, hasSecrets: false } : r} />}
       </div>
     </section>
+  );
+}
+
+function PastBanner({ tabId, past }: { tabId: string; past: PastInfo }) {
+  const tab = useTabs((s) => s.tabs.find((t) => t.id === tabId));
+  return (
+    <div className="past-banner">
+      <span>{pastBanner(past)}</span>
+      {tab && canRunAgain(past, tab.path) && (
+        <button onClick={() => void runAt(tabId, lineAtOffset(tab.text, tab.cursor))}>Run again</button>
+      )}
+      <button onClick={() => useResponses.getState().latest(tabId)}>Latest</button>
+    </div>
   );
 }
 

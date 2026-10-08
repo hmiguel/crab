@@ -8,7 +8,9 @@ import { buildTree, type TreeNode } from "../lib/tree";
 import { useOutline } from "../state/outline";
 import { useTabs } from "../state/tabs";
 import { useWorkspace, type VirtualFolder } from "../state/workspace";
+import { useLayout } from "../state/session";
 import { showError } from "../ui/actions";
+import { HistoryView } from "./HistoryView";
 import { openQuickOpen } from "./QuickOpen";
 
 /** The file and 0-based cursor line of the active tab; the tree follows it. */
@@ -35,19 +37,32 @@ export function Sidebar() {
     return t ? lineAtOffset(t.text, t.cursor) : 0;
   });
   const active = useMemo(() => ({ path, line }), [path, line]);
+  const tab = useLayout((s) => s.sidebarTab);
   return (
     <Active.Provider value={active}>
       <aside className="sidebar">
         <div className="sidebar-header">
-          <span>Workspace</span>
-          <span className="actions">
-            <button title={`Search files and requests (${shortcutLabel("P")})`} onClick={openQuickOpen}>⌕</button>
-            <button title="New virtual folder" onClick={() => useWorkspace.getState().addFolder("New folder")}>＋</button>
+          <span className="sidebar-tabs" role="tablist">
+            {(["workspace", "history"] as const).map((t) => (
+              <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? "active" : ""} onClick={() => useLayout.getState().setSidebarTab(t)}>
+                {t === "workspace" ? "Workspace" : "History"}
+              </button>
+            ))}
           </span>
+          {tab === "workspace" && (
+            <span className="actions">
+              <button title={`Search files and requests (${shortcutLabel("P")})`} onClick={openQuickOpen}>⌕</button>
+              <button title="New virtual folder" onClick={() => useWorkspace.getState().addFolder("New folder")}>＋</button>
+            </span>
+          )}
         </div>
-        <div className="sidebar-body">
-          {folders.map((f) => <FolderView key={f.id} folder={f} />)}
-        </div>
+        {tab === "workspace" ? (
+          <div className="sidebar-body">
+            {folders.map((f) => <FolderView key={f.id} folder={f} />)}
+          </div>
+        ) : (
+          <HistoryView />
+        )}
       </aside>
     </Active.Provider>
   );

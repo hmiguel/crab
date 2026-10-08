@@ -1,4 +1,5 @@
 import type { ErrorKind, ResolvedRequest, ResponseData } from "../api";
+import type { PastInfo } from "../state/responses";
 
 export function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -101,3 +102,28 @@ const ERROR_TITLES: Record<ErrorKind, string> = {
 };
 
 export const errorTitle = (kind: ErrorKind) => ERROR_TITLES[kind];
+const startOfDay = (ms: number) => new Date(new Date(ms).toDateString()).getTime();
+
+/** "Today", "Yesterday", or the local date. */
+export function dayLabel(atMs: number, now: number = Date.now()): string {
+  const days = Math.round((startOfDay(now) - startOfDay(atMs)) / 86_400_000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  return new Date(atMs).toLocaleDateString();
+}
+
+export const timeLabel = (atMs: number) => new Date(atMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+/** Consecutive items under their day label; input is newest first. */
+export function groupByDay<T extends { atMs: number }>(items: T[], now: number = Date.now()): { label: string; items: T[] }[] {
+  const groups: { label: string; items: T[] }[] = [];
+  for (const item of items) {
+    const label = dayLabel(item.atMs, now);
+    const last = groups[groups.length - 1];
+    if (last?.label === label) last.items.push(item);
+    else groups.push({ label, items: [item] });
+  }
+  return groups;
+}
+export const pastBanner = (p: PastInfo) =>
+  `From ${new Date(p.atMs).toLocaleDateString()} ${timeLabel(p.atMs)} · ${p.env ?? "no environment"}`;

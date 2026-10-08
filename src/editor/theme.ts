@@ -8,5 +8,5 @@ export const editorTheme = EditorView.theme({
   ".cm-activeLine, .cm-activeLineGutter": { backgroundColor: "var(--active-line)" },
   "&.cm-focused .cm-cursor": { borderLeftColor: "var(--fg)" },
   "&.cm-focused .cm-selectionBackground, .cm-selectionBackground": { backgroundColor: "var(--selection) !important" },
-  ".cm-run-gutter .cm-gutterElement": { cursor: "pointer", color: "var(--accent)", padding: "0 4px" },
+  ".cm-run-gutter .cm-gutterElement": { cursor: "pointer", color: "var(--env-marker, var(--accent))", padding: "0 4px" },
 });

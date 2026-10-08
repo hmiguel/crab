@@ -97,6 +97,7 @@ const ERROR_TITLES: Record<ErrorKind, string> = {
   timeout: "Timed out",
   cancelled: "Cancelled",
   io: "File error",
+  env: "Environment error",
 };
 
 export const errorTitle = (kind: ErrorKind) => ERROR_TITLES[kind];

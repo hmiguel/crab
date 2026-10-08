@@ -1,12 +1,13 @@
 //! Thin Tauri glue over crab-core. No business logic here.
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use crab_core::error::{CrabError, ErrorKind};
 use crab_core::exec::{execute, ExecOptions, ResponseData};
-use crab_core::model::ParsedFile;
-use crab_core::vars::NoEnv;
+use crab_core::env::{self, EnvFiles, FileEnv};
+use crab_core::model::{ParsedFile, ResolvedRequest};
 use crab_core::{files, parser, prepare_request};
 use notify_debouncer_mini::notify::RecursiveMode;
 use notify_debouncer_mini::{new_debouncer, DebounceEventResult};
@@ -29,14 +30,40 @@ pub async fn run_request(
     path: Option<String>,
     text: String,
     line: usize,
+    env: Option<String>,
+    root: Option<String>,
 ) -> Result<ResponseData, CrabError> {
     let base_dir = path.as_deref().and_then(|p| Path::new(p).parent()).map(Path::to_path_buf);
-    let request = prepare_request(&text, line, base_dir.as_deref(), &NoEnv)?;
+    // Unsaved files have no folder to look for env files in.
+    let files = match path.as_deref() {
+        Some(p) => EnvFiles::discover(Path::new(p), root.as_deref().map(Path::new))?,
+        None => EnvFiles::default(),
+    };
+    let provider = FileEnv::new(env.clone(), files);
+    let request = prepare_request(&text, line, base_dir.as_deref(), &provider)?;
     let token = CancellationToken::new();
     state.runs.lock().unwrap().insert(run_id.clone(), token.clone());
     let result = execute(&request, &ExecOptions::default(), token).await;
     state.runs.lock().unwrap().remove(&run_id);
-    result
+    let mut response = result?;
+    response.env = env;
+    response.has_secrets = request.has_secrets();
+    response.request = request.masked();
+    if response.has_secrets {
+        state.remember_request(run_id, request);
+    }
+    Ok(response)
+}
+
+#[tauri::command]
+pub fn reveal_request(state: State<'_, AppState>, run_id: String) -> Option<ResolvedRequest> {
+    state.revealed_request(&run_id)
+}
+
+#[tauri::command]
+pub async fn list_environments(roots: Vec<String>) -> Vec<String> {
+    let names: BTreeSet<String> = roots.iter().flat_map(|r| env::find_env_names(Path::new(r))).collect();
+    names.into_iter().collect()
 }
 
 #[tauri::command]

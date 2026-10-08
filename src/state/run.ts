@@ -10,7 +10,7 @@ export async function runAt(tabId: string, line: number): Promise<void> {
   const runId = crypto.randomUUID();
   useResponses.getState().start(tabId, runId, line);
   try {
-    const response = await api.runRequest({ runId, path: tab.path, text: tab.text, line });
+    const response = await api.runRequest({ runId, path: tab.path, text: tab.text, line, env: null, root: null });
     useResponses.getState().finish(tabId, runId, response);
   } catch (e) {
     useResponses.getState().fail(tabId, runId, toCrabError(e));

@@ -25,3 +25,6 @@ export function isUnder(path: string, root: string): boolean {
 }
 
 export const isHttpFile = (p: string) => /\.(http|rest)$/i.test(p);
+
+const ENV_FILES = ["http-client.env.json", "http-client.private.env.json", ".env"];
+export const isEnvFile = (p: string) => ENV_FILES.includes(basename(p));

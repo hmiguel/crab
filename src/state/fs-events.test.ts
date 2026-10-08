@@ -2,9 +2,14 @@ import { beforeEach, expect, test, vi } from "vitest";
 
 vi.mock("../api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../api")>()),
-  api: { saveState: vi.fn().mockResolvedValue(undefined), watchRoots: vi.fn().mockResolvedValue(undefined) },
+  api: {
+    saveState: vi.fn().mockResolvedValue(undefined),
+    watchRoots: vi.fn().mockResolvedValue(undefined),
+    listEnvironments: vi.fn().mockResolvedValue([]),
+  },
 }));
 
+import { useEnvironments } from "./environments";
 import { handleFsChanged } from "./fs-events";
 import { useTabs } from "./tabs";
 import { useWorkspace } from "./workspace";
@@ -25,5 +30,16 @@ test("rescans affected roots once and notifies tabs about .http changes only", (
   vi.advanceTimersByTime(300);
   expect(refreshRoot).toHaveBeenCalledTimes(1);
   expect(refreshRoot).toHaveBeenCalledWith("/r");
+  vi.useRealTimers();
+});
+
+test("env file changes refresh the environment names once", () => {
+  vi.useFakeTimers();
+  const refresh = vi.fn().mockResolvedValue(undefined);
+  useEnvironments.setState({ refresh });
+  handleFsChanged(["/r/http-client.env.json", "/r/sub/.env", "/r/package.json"]);
+  vi.advanceTimersByTime(300);
+  expect(refresh).toHaveBeenCalledTimes(1);
+  expect(refresh).toHaveBeenCalledWith(["/r"]);
   vi.useRealTimers();
 });

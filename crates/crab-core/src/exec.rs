@@ -47,6 +47,8 @@ pub struct ResponseData {
     pub has_secrets: bool,
     /// Set by the app: the environment the run used.
     pub env: Option<String>,
+    /// Set by the app: the history row this run was saved as.
+    pub history_id: Option<i64>,
 }
 
 pub async fn execute(req: &ResolvedRequest, opts: &ExecOptions, cancel: CancellationToken) -> Result<ResponseData, CrabError> {
@@ -129,6 +131,7 @@ async fn send(req: &ResolvedRequest, opts: &ExecOptions) -> Result<ResponseData,
         request: req.clone(),
         has_secrets: false,
         env: None,
+        history_id: None,
     })
 }
 

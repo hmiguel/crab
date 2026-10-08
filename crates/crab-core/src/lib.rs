@@ -5,6 +5,7 @@ pub mod env;
 pub mod error;
 pub mod exec;
 pub mod files;
+pub mod history;
 pub mod model;
 pub mod parser;
 pub mod vars;
@@ -29,6 +30,14 @@ pub fn prepare_request(text: &str, line: usize, base_dir: Option<&Path>, env: &d
     };
     let resolver = Resolver::new(&parsed.variables, env);
     vars::resolve_request(block, &resolver, base_dir)
+}
+
+/// Identity of the request under `line`, used to group its runs in history.
+pub fn request_key(text: &str, line: usize) -> Option<history::RequestKey> {
+    let parsed = parser::parse(text);
+    let block = parsed.request_at_line(line)?;
+    let key = block.name.clone().unwrap_or_else(|| format!("{} {}", block.method, block.url));
+    Some(history::RequestKey { key, name: block.name.clone(), line: block.request_line })
 }
 
 /// Inclusive line range of the `###`-delimited block containing `line`.

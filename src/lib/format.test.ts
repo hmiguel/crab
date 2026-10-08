@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { dayLabel, formatBytes, formatMs, formatRequest, groupByDay, prettyBody, reindentJson, statusClass } from "./format";
+import { dayLabel, formatBytes, formatMs, formatRequest, groupByDay, pastBanner, prettyBody, reindentJson, statusClass } from "./format";
 
 test("reindentJson keeps big integers and string contents intact", () => {
   const input = '{"id":12345678901234567890,"a":[1,2],"e":{},"s":"x, y: {z} \\"q\\""}';
@@ -45,4 +45,11 @@ test("groupByDay keeps order and groups consecutive days", () => {
   expect(groups.map((g) => [g.label, g.items.length])).toEqual([
     ["Today", 2], ["Yesterday", 1], [new Date(2026, 9, 1).toLocaleDateString(), 1],
   ]);
+});
+
+test("pastBanner names when and where a past run happened", () => {
+  const at = new Date(2026, 9, 8, 9, 30).getTime();
+  const when = `${new Date(at).toLocaleDateString()} ${new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  expect(pastBanner({ id: 1, atMs: at, env: "prod" })).toBe(`From ${when} · prod`);
+  expect(pastBanner({ id: 1, atMs: at, env: null })).toBe(`From ${when} · no environment`);
 });

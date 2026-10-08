@@ -1,4 +1,5 @@
 import type { ErrorKind, ResolvedRequest, ResponseData } from "../api";
+import type { PastInfo } from "../state/responses";
 
 export function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -124,3 +125,5 @@ export function groupByDay<T extends { atMs: number }>(items: T[], now: number =
   }
   return groups;
 }
+export const pastBanner = (p: PastInfo) =>
+  `From ${new Date(p.atMs).toLocaleDateString()} ${timeLabel(p.atMs)} · ${p.env ?? "no environment"}`;

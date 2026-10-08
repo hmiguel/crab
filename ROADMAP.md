@@ -2,10 +2,8 @@
 
 v1: core .http runner + multi-repo workspace with tabs (see docs/superpowers/specs/2026-10-07-crab-design.md).
 
-- **M2 — Environments and history:**
-  - Support `http-client.env.json` + `http-client.private.env.json` and `.env`, with an env switcher per file or workspace.
+- **M2 — History:**
   - Persistent history in SQLite (`rusqlite`): full-text search, re-run, and diff two responses.
-  - Secrets stay out of tracked files.
 - **M3 — Automation:**
   - `crab-cli` (`crab run file.http#name --env dev`) for CI.
   - Built-in MCP server (list, run, author requests). Agents see raw text with `{{placeholders}}` only, never resolved secrets or history.

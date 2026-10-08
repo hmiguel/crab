@@ -1,14 +1,16 @@
 use std::time::{Duration, Instant};
 
+use crab_core::env::{EnvFiles, FileEnv};
 use crab_core::error::ErrorKind;
 use crab_core::exec::{execute, ExecOptions};
-use crab_core::model::{Header, ResolvedRequest};
+use crab_core::model::{Header, ResolvedRequest, MASK};
+use crab_core::prepare_request;
 use tokio_util::sync::CancellationToken;
 use wiremock::matchers::{body_string, header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 fn req(method: &str, url: String) -> ResolvedRequest {
-    ResolvedRequest { method: method.into(), url, headers: vec![], body: None }
+    ResolvedRequest { method: method.into(), url, headers: vec![], body: None, secrets: vec![] }
 }
 
 #[tokio::test]
@@ -124,4 +126,38 @@ async fn connection_refused_is_a_network_error() {
 async fn invalid_url_is_a_parse_error() {
     let err = execute(&req("GET", "http://exa mple.com/".into()), &ExecOptions::default(), CancellationToken::new()).await.unwrap_err();
     assert_eq!(err.kind, ErrorKind::Parse);
+}
+
+#[tokio::test]
+async fn runs_with_file_env_and_returns_a_masked_copy() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/me"))
+        .and(header("authorization", "Bearer s3cret-token"))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&server)
+        .await;
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("http-client.env.json"), format!(r#"{{"dev": {{"host": "{}"}}}}"#, server.uri())).unwrap();
+    std::fs::write(dir.path().join("http-client.private.env.json"), r#"{"dev": {"token": "s3cret-token"}}"#).unwrap();
+    let file = dir.path().join("a.http");
+    let env = FileEnv::new(Some("dev".into()), EnvFiles::discover(&file, Some(dir.path())).unwrap());
+
+    let req = prepare_request("GET {{host}}/me\nAuthorization: Bearer {{token}}\n", 0, Some(dir.path()), &env).unwrap();
+    let resp = execute(&req, &ExecOptions::default(), CancellationToken::new()).await.unwrap();
+    assert_eq!(resp.status, 200);
+    assert!(!resp.has_secrets);
+    assert_eq!(resp.env, None);
+    assert_eq!(req.masked().headers[0].value, format!("Bearer {MASK}"));
+}
+
+#[tokio::test]
+async fn network_errors_never_include_the_url() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+    drop(listener);
+    let url = format!("http://127.0.0.1:{port}/v1?api_key=s3cret-key");
+    let err = execute(&req("GET", url), &ExecOptions::default(), CancellationToken::new()).await.unwrap_err();
+    assert_eq!(err.kind, ErrorKind::Network);
+    assert!(!err.message.contains("s3cret-key"), "{}", err.message);
 }

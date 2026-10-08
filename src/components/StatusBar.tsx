@@ -2,6 +2,7 @@ import { errorTitle, formatBytes, formatMs, statusClass } from "../lib/format";
 import { useResponses } from "../state/responses";
 import { useLayout } from "../state/session";
 import { useTabs } from "../state/tabs";
+import { EnvMenu } from "./EnvMenu";
 
 export function StatusBar() {
   const tab = useTabs((s) => s.tabs.find((t) => t.id === s.activeId) ?? null);
@@ -20,6 +21,7 @@ export function StatusBar() {
         </>
       )}
       {run?.status === "error" && <span className="status server-error">{errorTitle(run.error.kind)}</span>}
+      <EnvMenu />
       <button title="Move the response panel" onClick={() => useLayout.getState().toggleDock()}>
         Response: {dock === "right" ? "right" : "bottom"}
       </button>

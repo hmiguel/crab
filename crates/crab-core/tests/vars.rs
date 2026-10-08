@@ -1,7 +1,8 @@
 use crab_core::error::ErrorKind;
 use crab_core::model::FileVar;
 use crab_core::prepare_request;
-use crab_core::vars::{EnvProvider, NoEnv, Resolver};
+use crab_core::model::MASK;
+use crab_core::vars::{EnvProvider, EnvValue, NoEnv, Resolver};
 
 fn vars(pairs: &[(&str, &str)]) -> Vec<FileVar> {
     pairs
@@ -49,10 +50,10 @@ fn circular_variables_error_instead_of_hanging() {
 fn env_provider_is_consulted_after_file_vars() {
     struct Env;
     impl EnvProvider for Env {
-        fn get(&self, name: &str) -> Option<String> {
+        fn get(&self, name: &str) -> Option<EnvValue> {
             match name {
-                "token" => Some("secret".into()),
-                "host" => Some("from-env".into()),
+                "token" => Some(EnvValue::public("secret")),
+                "host" => Some(EnvValue::public("from-env")),
                 _ => None,
             }
         }
@@ -125,4 +126,60 @@ fn fan_out_self_reference_fails_fast() {
     let err = Resolver::new(&v, &NoEnv).resolve("{{a}}").unwrap_err();
     assert!(err.message.contains("circular"), "{}", err.message);
     assert!(start.elapsed() < std::time::Duration::from_secs(1), "took {:?}", start.elapsed());
+}
+
+struct SecretEnv;
+impl EnvProvider for SecretEnv {
+    fn get(&self, name: &str) -> Option<EnvValue> {
+        match name {
+            "token" => Some(EnvValue::secret("abcd1234")),
+            "short" => Some(EnvValue::secret("1")),
+            "host" => Some(EnvValue::public("api.test")),
+            _ => None,
+        }
+    }
+    fn dotenv(&self, name: &str) -> Option<EnvValue> {
+        (name == "PORT").then(|| EnvValue::public("8080"))
+    }
+    fn env_name(&self) -> Option<&str> {
+        Some("prod")
+    }
+}
+
+#[test]
+fn masked_hides_every_occurrence_and_skips_short_secrets() {
+    let text = "GET https://{{host}}/?k={{token}}&again={{token}}&n={{short}}\nAuthorization: Bearer {{token}}\nX-Id: {{$guid}}\n\n{\"t\":\"{{token}}\"}\n";
+    let req = prepare_request(text, 0, None, &SecretEnv).unwrap();
+    assert!(req.url.contains("abcd1234"));
+    assert!(req.has_secrets());
+    let masked = req.masked();
+    assert_eq!(masked.url, format!("https://api.test/?k={MASK}&again={MASK}&n=1"));
+    assert_eq!(masked.headers[0].value, format!("Bearer {MASK}"));
+    assert_eq!(String::from_utf8(masked.body.clone().unwrap()).unwrap(), format!("{{\"t\":\"{MASK}\"}}"));
+    // Resolved once: the dynamic value is identical in both copies.
+    assert_eq!(masked.headers[1].value, req.headers[1].value);
+    assert!(masked.secrets.is_empty());
+}
+
+#[test]
+fn only_short_secrets_means_nothing_to_mask() {
+    let req = prepare_request("GET https://x.test/{{short}}\n", 0, None, &SecretEnv).unwrap();
+    assert!(!req.has_secrets());
+    assert_eq!(req.masked().url, "https://x.test/1");
+}
+
+#[test]
+fn dotenv_dynamic_variable_reads_the_dotenv_provider() {
+    let r = Resolver::new(&[], &SecretEnv);
+    assert_eq!(r.resolve("{{$dotenv PORT}}").unwrap(), "8080");
+    assert_eq!(r.resolve("{{$dotenv NOPE}}").unwrap_err().kind, ErrorKind::UnresolvedVars);
+    assert_eq!(Resolver::new(&[], &NoEnv).resolve("{{$dotenv PORT}}").unwrap_err().kind, ErrorKind::UnresolvedVars);
+}
+
+#[test]
+fn unresolved_error_names_the_environment() {
+    let err = Resolver::new(&[], &SecretEnv).resolve("{{missing}}").unwrap_err();
+    assert_eq!(err.message, "Unresolved variables: missing (environment: prod)");
+    let err = Resolver::new(&[], &NoEnv).resolve("{{missing}}").unwrap_err();
+    assert_eq!(err.message, "Unresolved variables: missing");
 }

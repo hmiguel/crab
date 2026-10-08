@@ -1,9 +1,10 @@
 import { create } from "zustand";
 import { api, toCrabError } from "../api";
 import { samePath } from "../lib/paths";
+import { useEnvironments, type EnvSettings } from "./environments";
 
 export type VirtualFolder = { id: string; name: string; roots: string[] };
-type Persisted = { version: 1; folders: VirtualFolder[] };
+type Persisted = { version: 1; folders: VirtualFolder[]; environments?: EnvSettings };
 
 type WorkspaceState = {
   folders: VirtualFolder[];
@@ -26,9 +27,16 @@ function uniqueRoots(folders: VirtualFolder[]): string[] {
   return out;
 }
 
+function save(folders: VirtualFolder[]) {
+  const value: Persisted = { version: 1, folders, environments: useEnvironments.getState().settings() };
+  api.saveState("workspace", value).catch(console.error);
+}
+
 function persist(folders: VirtualFolder[]) {
-  api.saveState("workspace", { version: 1, folders } satisfies Persisted).catch(console.error);
-  api.watchRoots(uniqueRoots(folders)).catch(console.error);
+  save(folders);
+  const roots = uniqueRoots(folders);
+  api.watchRoots(roots).catch(console.error);
+  void useEnvironments.getState().refresh(roots);
 }
 
 export const useWorkspace = create<WorkspaceState>((set, get) => {
@@ -44,8 +52,10 @@ export const useWorkspace = create<WorkspaceState>((set, get) => {
       const saved = await api.loadState<Persisted>("workspace").catch(() => null);
       const folders = saved?.version === 1 ? saved.folders : [{ id: crypto.randomUUID(), name: "Workspace", roots: [] }];
       set({ folders });
+      useEnvironments.getState().load(saved?.version === 1 ? saved.environments : undefined);
       const roots = uniqueRoots(folders);
       api.watchRoots(roots).catch(console.error);
+      void useEnvironments.getState().refresh(roots);
       await Promise.all(roots.map((r) => get().refreshRoot(r)));
     },
     addFolder(name) {
@@ -89,4 +99,11 @@ export const useWorkspace = create<WorkspaceState>((set, get) => {
     },
     allRoots: () => uniqueRoots(get().folders),
   };
+});
+
+// Save when the environment settings change; `names` is derived from disk and not saved.
+useEnvironments.subscribe((s, prev) => {
+  if (s.selected !== prev.selected || s.colors !== prev.colors || s.confirmDanger !== prev.confirmDanger) {
+    save(useWorkspace.getState().folders);
+  }
 });

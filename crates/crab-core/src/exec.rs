@@ -43,6 +43,10 @@ pub struct ResponseData {
     pub size_bytes: u64,
     pub timing: Timing,
     pub request: ResolvedRequest,
+    /// Set by the app: whether `request` has masked secrets (see `ResolvedRequest::masked`).
+    pub has_secrets: bool,
+    /// Set by the app: the environment the run used.
+    pub env: Option<String>,
 }
 
 pub async fn execute(req: &ResolvedRequest, opts: &ExecOptions, cancel: CancellationToken) -> Result<ResponseData, CrabError> {
@@ -123,10 +127,14 @@ async fn send(req: &ResolvedRequest, opts: &ExecOptions) -> Result<ResponseData,
         size_bytes,
         timing: Timing { total_ms: total.as_secs_f64() * 1000.0, ttfb_ms: ttfb.as_secs_f64() * 1000.0 },
         request: req.clone(),
+        has_secrets: false,
+        env: None,
     })
 }
 
 fn map_reqwest(e: reqwest::Error, timeout: Duration) -> CrabError {
+    // The resolved URL may carry secrets; the UI already knows which request failed.
+    let e = e.without_url();
     if e.is_timeout() {
         CrabError::new(ErrorKind::Timeout, format!("Request timed out after {} s", timeout.as_secs_f64()))
     } else if e.is_builder() {

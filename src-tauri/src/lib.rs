@@ -13,6 +13,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::parse_text,
             commands::run_request,
+            commands::reveal_request,
+            commands::list_environments,
             commands::cancel_request,
             commands::read_text_file,
             commands::write_text_file,

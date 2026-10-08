@@ -6,19 +6,25 @@ import { samePath } from "../lib/paths";
 import { isDirty, useTabs, type Tab } from "./tabs";
 
 export type Dock = "right" | "bottom";
+export type SidebarTab = "workspace" | "history";
 export type SessionTab = { path: string; draft: string | null; cursor: number; scrollTop: number };
-export type Session = { version: 1; tabs: SessionTab[]; activePath: string | null; dock: Dock };
+export type Session = { version: 1; tabs: SessionTab[]; activePath: string | null; dock: Dock; sidebarTab?: SidebarTab };
 
-export const useLayout = create<{ dock: Dock; setDock(d: Dock): void; toggleDock(): void }>((set, get) => ({
+type Layout = { dock: Dock; sidebarTab: SidebarTab; setDock(d: Dock): void; toggleDock(): void; setSidebarTab(t: SidebarTab): void };
+
+export const useLayout = create<Layout>((set, get) => ({
   dock: "right",
+  sidebarTab: "workspace",
   setDock: (dock) => set({ dock }),
+  setSidebarTab: (sidebarTab) => set({ sidebarTab }),
   toggleDock: () => set({ dock: get().dock === "right" ? "bottom" : "right" }),
 }));
 
-export function toSession(tabs: Tab[], activeId: string | null, dock: Dock): Session {
+export function toSession(tabs: Tab[], activeId: string | null, dock: Dock, sidebarTab: SidebarTab = "workspace"): Session {
   return {
     version: 1,
     dock,
+    sidebarTab,
     activePath: tabs.find((t) => t.id === activeId)?.path ?? null,
     tabs: tabs.map((t) => ({ path: t.path, draft: isDirty(t) ? t.text : null, cursor: t.cursor, scrollTop: t.scrollTop })),
   };
@@ -28,6 +34,7 @@ export async function restoreSession(): Promise<void> {
   const session = await api.loadState<Session>("session").catch(() => null);
   if (!session || session.version !== 1) return;
   useLayout.getState().setDock(session.dock ?? "right");
+  useLayout.getState().setSidebarTab(session.sidebarTab ?? "workspace");
   for (const st of session.tabs) {
     let disk: string | null = null;
     let eol: Eol = "\n";
@@ -56,7 +63,7 @@ export async function restoreSession(): Promise<void> {
 export function startSessionAutosave(): { flush(): Promise<void>; stop(): void } {
   const save = () => {
     const { tabs, activeId } = useTabs.getState();
-    return api.saveState("session", toSession(tabs, activeId, useLayout.getState().dock)).catch(console.error);
+    return api.saveState("session", toSession(tabs, activeId, useLayout.getState().dock, useLayout.getState().sidebarTab)).catch(console.error);
   };
   const later = debounce(() => void save(), 1000);
   const unsubTabs = useTabs.subscribe(() => later());

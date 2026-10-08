@@ -91,7 +91,7 @@ test("sends the selected environment", async () => {
 });
 
 test("asks before sending a POST to a red environment and stops on cancel", async () => {
-  useOutline.getState().set("/r/a.http", [block("POST")]);
+  vi.mocked(api.parseText).mockResolvedValue({ variables: [], requests: [block("POST")], diagnostics: [] });
   useEnvironments.getState().select("prod");
   vi.mocked(ask).mockResolvedValueOnce(false);
   await runAt(tabId, 0);
@@ -101,7 +101,7 @@ test("asks before sending a POST to a red environment and stops on cancel", asyn
 });
 
 test("sends after the user confirms", async () => {
-  useOutline.getState().set("/r/a.http", [block("DELETE")]);
+  vi.mocked(api.parseText).mockResolvedValue({ variables: [], requests: [block("DELETE")], diagnostics: [] });
   useEnvironments.getState().select("prod");
   vi.mocked(ask).mockResolvedValueOnce(true);
   vi.mocked(api.runRequest).mockResolvedValueOnce(fakeResponse(204));
@@ -110,7 +110,7 @@ test("sends after the user confirms", async () => {
 });
 
 test("lowercase methods are still checked", async () => {
-  useOutline.getState().set("/r/a.http", [block("post")]);
+  vi.mocked(api.parseText).mockResolvedValue({ variables: [], requests: [block("post")], diagnostics: [] });
   useEnvironments.getState().select("prod");
   vi.mocked(ask).mockResolvedValueOnce(false);
   await runAt(tabId, 0);
@@ -119,10 +119,10 @@ test("lowercase methods are still checked", async () => {
 
 test("GET, a non-red environment, or the setting turned off never asks", async () => {
   vi.mocked(api.runRequest).mockResolvedValue(fakeResponse(200));
-  useOutline.getState().set("/r/a.http", [block("GET")]);
+  vi.mocked(api.parseText).mockResolvedValue({ variables: [], requests: [block("GET")], diagnostics: [] });
   useEnvironments.getState().select("prod");
   await runAt(tabId, 0);
-  useOutline.getState().set("/r/a.http", [block("POST")]);
+  vi.mocked(api.parseText).mockResolvedValue({ variables: [], requests: [block("POST")], diagnostics: [] });
   useEnvironments.getState().select("dev");
   await runAt(tabId, 0);
   useEnvironments.getState().select("prod");
@@ -132,7 +132,7 @@ test("GET, a non-red environment, or the setting turned off never asks", async (
   expect(api.runRequest).toHaveBeenCalledTimes(3);
 });
 
-test("a file outside every root runs with root null and parses its text for the method", async () => {
+test("a file outside every root runs with root null", async () => {
   const outside = useTabs.getState().addTab({ path: "/elsewhere/b.http", text: "POST https://x.test\n", savedText: "", eol: "\n", cursor: 0, scrollTop: 0 });
   useEnvironments.getState().select("prod");
   vi.mocked(api.parseText).mockResolvedValueOnce({ variables: [], requests: [block("POST")], diagnostics: [] });
@@ -142,4 +142,17 @@ test("a file outside every root runs with root null and parses its text for the 
   expect(api.parseText).toHaveBeenCalledWith("POST https://x.test\n");
   expect(ask).toHaveBeenCalled();
   expect(api.runRequest).toHaveBeenCalledWith(expect.objectContaining({ path: "/elsewhere/b.http", env: "prod", root: null }));
+});
+
+test("a red environment checks the current text, not a stale outline", async () => {
+  // The editor's outline still says GET; the text was just changed to POST.
+  useOutline.getState().set("/r/a.http", [block("GET")]);
+  useTabs.getState().setText(tabId, "POST https://x.test\n");
+  vi.mocked(api.parseText).mockResolvedValueOnce({ variables: [], requests: [block("POST")], diagnostics: [] });
+  useEnvironments.getState().select("prod");
+  vi.mocked(ask).mockResolvedValueOnce(false);
+  await runAt(tabId, 0);
+  expect(api.parseText).toHaveBeenCalledWith("POST https://x.test\n");
+  expect(ask).toHaveBeenCalled();
+  expect(api.runRequest).not.toHaveBeenCalled();
 });

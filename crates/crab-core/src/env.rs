@@ -87,6 +87,7 @@ fn load_env_json(path: &Path) -> Result<EnvJson, CrabError> {
 /// `KEY=VALUE` lines. Supports `#` comments, `export `, single and double quotes (`\n` and `\"` inside
 /// double quotes) and ` #` comments after unquoted values. Malformed lines are ignored.
 pub fn parse_dotenv(text: &str) -> HashMap<String, String> {
+    let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let mut out = HashMap::new();
     for line in text.lines() {
         let line = line.trim();

@@ -6,7 +6,7 @@ use std::path::Path;
 use std::sync::OnceLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use rand::Rng;
+use rand::RngExt;
 use regex::{Captures, Regex};
 
 use crate::error::{CrabError, ErrorKind};
@@ -147,7 +147,7 @@ fn dynamic_value(expr: &str) -> Option<String> {
         "randomInt" => {
             let min: i64 = parts.next().map_or(Some(0), |s| s.parse().ok())?;
             let max: i64 = parts.next().map_or(Some(1000), |s| s.parse().ok())?;
-            (min < max).then(|| rand::thread_rng().gen_range(min..max).to_string())
+            (min < max).then(|| rand::rng().random_range(min..max).to_string())
         }
         _ => None,
     }

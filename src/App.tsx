@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Group, Panel, Separator, useDefaultLayout } from "react-resizable-panels";
 import { Editor } from "./editor/Editor";
 import { EnvAccent } from "./components/EnvAccent";
 import { QuickOpen, openQuickOpen } from "./components/QuickOpen";
@@ -16,8 +16,28 @@ import { useTabs } from "./state/tabs";
 import { useWorkspace } from "./state/workspace";
 import { closeTabWithPrompt, showError } from "./ui/actions";
 
+function WorkArea({ dock }: { dock: string }) {
+  const id = `crab-work-${dock}`;
+  const { defaultLayout, onLayoutChanged } = useDefaultLayout({ id, panelIds: ["editor", "response"] });
+  return (
+    <Group id={id} orientation={dock === "right" ? "horizontal" : "vertical"} defaultLayout={defaultLayout} onLayoutChanged={onLayoutChanged}>
+      <Panel id="editor" minSize="20%">
+        <div className="editor-column">
+          <TabBar />
+          <Editor />
+        </div>
+      </Panel>
+      <Separator className="resize-handle" />
+      <Panel id="response" defaultSize="45%" minSize="15%">
+        <ResponsePanel />
+      </Panel>
+    </Group>
+  );
+}
+
 export function App() {
   const dock = useLayout((s) => s.dock);
+  const main = useDefaultLayout({ id: "crab-main", panelIds: ["sidebar", "work"] });
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -57,26 +77,15 @@ export function App() {
   return (
     <div className="app">
       <EnvAccent />
-      <PanelGroup direction="horizontal" autoSaveId="crab-main" className="main">
-        <Panel defaultSize={22} minSize={12}>
+      <Group orientation="horizontal" className="main" id="crab-main" defaultLayout={main.defaultLayout} onLayoutChanged={main.onLayoutChanged}>
+        <Panel id="sidebar" defaultSize="22%" minSize="12%">
           <Sidebar />
         </Panel>
-        <PanelResizeHandle className="resize-handle" />
-        <Panel minSize={30}>
-          <PanelGroup key={dock} direction={dock === "right" ? "horizontal" : "vertical"} autoSaveId={`crab-work-${dock}`}>
-            <Panel minSize={20}>
-              <div className="editor-column">
-                <TabBar />
-                <Editor />
-              </div>
-            </Panel>
-            <PanelResizeHandle className="resize-handle" />
-            <Panel defaultSize={45} minSize={15}>
-              <ResponsePanel />
-            </Panel>
-          </PanelGroup>
+        <Separator className="resize-handle" />
+        <Panel id="work" minSize="30%">
+          <WorkArea dock={dock} />
         </Panel>
-      </PanelGroup>
+      </Group>
       <StatusBar />
       <QuickOpen />
     </div>
